@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Check, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function RegisterPage() {
@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [checkingUsername, setCheckingUsername] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
     username: '',
@@ -22,13 +23,45 @@ export default function RegisterPage() {
     confirmPassword: '',
     agreedToTerms: false,
   })
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
 
   useEffect(() => {
     const usernameParam = searchParams.get('username')
     if (usernameParam) {
       setFormData(prev => ({ ...prev, username: usernameParam }))
+      checkUsernameAvailability(usernameParam)
     }
   }, [searchParams])
+
+  const checkUsernameAvailability = async (username: string) => {
+    if (username.length < 3) {
+      setUsernameAvailable(null)
+      return
+    }
+
+    setCheckingUsername(true)
+
+    const { data } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('username', username.toLowerCase())
+      .single()
+
+    setUsernameAvailable(!data)
+    setCheckingUsername(false)
+  }
+
+  const handleUsernameChange = (value: string) => {
+    // Only allow alphanumeric, hyphens, and underscores
+    const cleaned = value.toLowerCase().replace(/[^a-z0-9_-]/g, '')
+    setFormData({ ...formData, username: cleaned })
+    
+    if (cleaned.length >= 3) {
+      checkUsernameAvailability(cleaned)
+    } else {
+      setUsernameAvailable(null)
+    }
+  }
 
   const validateForm = () => {
     if (!formData.username || formData.username.length < 3) {
@@ -37,6 +70,10 @@ export default function RegisterPage() {
     }
     if (!/^[a-zA-Z0-9_-]+$/.test(formData.username)) {
       setError('Username can only contain letters, numbers, hyphens, and underscores')
+      return false
+    }
+    if (usernameAvailable === false) {
+      setError('Username is already taken')
       return false
     }
     if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) {
@@ -67,19 +104,6 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      // Check if username is already taken
-      const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('username', formData.username.toLowerCase())
-        .single()
-
-      if (existingUser) {
-        setError('Username is already taken')
-        setLoading(false)
-        return
-      }
-
       // Sign up the user
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
@@ -100,11 +124,28 @@ export default function RegisterPage() {
       }
     } catch (err: any) {
       console.error('Registration error:', err)
-      setError(err.message || 'Failed to create account')
+      if (err.message.includes('already registered')) {
+        setError('This email is already registered. Try logging in instead.')
+      } else {
+        setError(err.message || 'Failed to create account. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
   }
+
+  const passwordStrength = () => {
+    const pwd = formData.password
+    if (pwd.length === 0) return { strength: 0, label: '', color: '' }
+    if (pwd.length < 6) return { strength: 1, label: 'Weak', color: 'bg-red-500' }
+    if (pwd.length < 10) return { strength: 2, label: 'Fair', color: 'bg-yellow-500' }
+    if (pwd.length < 12 || !/[A-Z]/.test(pwd) || !/[0-9]/.test(pwd)) {
+      return { strength: 3, label: 'Good', color: 'bg-blue-500' }
+    }
+    return { strength: 4, label: 'Strong', color: 'bg-green-500' }
+  }
+
+  const pwdStrength = passwordStrength()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white flex items-center justify-center px-4 relative overflow-hidden py-12">
@@ -149,20 +190,47 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">Username</label>
-              <div className="flex bg-slate-900/50 border border-slate-700 rounded-lg overflow-hidden focus-within:border-blue-500 transition">
-                <span className="px-3 py-3 text-slate-400 text-sm">vantora.id/</span>
-                <input
-                  type="text"
-                  placeholder="yourname"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="flex-1 bg-transparent px-2 py-3 text-white outline-none"
-                  disabled={loading}
-                />
+              <div className="relative">
+                <div className="flex bg-slate-900/50 border border-slate-700 rounded-lg overflow-hidden focus-within:border-blue-500 transition">
+                  <span className="px-3 py-3 text-slate-400 text-sm">vantora.id/</span>
+                  <input
+                    type="text"
+                    placeholder="yourname"
+                    value={formData.username}
+                    onChange={(e) => handleUsernameChange(e.target.value)}
+                    className="flex-1 bg-transparent px-2 py-3 text-white outline-none"
+                    disabled={loading}
+                    maxLength={30}
+                  />
+                  {checkingUsername && (
+                    <div className="px-3 flex items-center">
+                      <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
+                    </div>
+                  )}
+                  {!checkingUsername && usernameAvailable === true && formData.username.length >= 3 && (
+                    <div className="px-3 flex items-center">
+                      <Check className="w-5 h-5 text-green-500" />
+                    </div>
+                  )}
+                  {!checkingUsername && usernameAvailable === false && (
+                    <div className="px-3 flex items-center">
+                      <X className="w-5 h-5 text-red-500" />
+                    </div>
+                  )}
+                </div>
               </div>
+              {formData.username.length > 0 && formData.username.length < 3 && (
+                <p className="text-xs text-slate-400 mt-1">At least 3 characters required</p>
+              )}
+              {usernameAvailable === false && (
+                <p className="text-xs text-red-400 mt-1">Username is already taken</p>
+              )}
+              {usernameAvailable === true && (
+                <p className="text-xs text-green-400 mt-1">Username is available!</p>
+              )}
             </div>
 
             <div>
@@ -174,6 +242,7 @@ export default function RegisterPage() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500 transition"
                 disabled={loading}
+                autoComplete="email"
               />
             </div>
 
@@ -187,6 +256,7 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 pr-12 text-white outline-none focus:border-blue-500 transition"
                   disabled={loading}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -197,6 +267,21 @@ export default function RegisterPage() {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {formData.password.length > 0 && (
+                <div className="mt-2">
+                  <div className="flex gap-1 mb-1">
+                    {[1, 2, 3, 4].map((level) => (
+                      <div
+                        key={level}
+                        className={`h-1 flex-1 rounded-full transition ${
+                          level <= pwdStrength.strength ? pwdStrength.color : 'bg-slate-700'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-400">{pwdStrength.label} password</p>
+                </div>
+              )}
             </div>
 
             <div>
@@ -209,6 +294,7 @@ export default function RegisterPage() {
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 pr-12 text-white outline-none focus:border-blue-500 transition"
                   disabled={loading}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -219,6 +305,14 @@ export default function RegisterPage() {
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                <p className="text-xs text-red-400 mt-1">Passwords don't match</p>
+              )}
+              {formData.confirmPassword && formData.password === formData.confirmPassword && (
+                <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                  <Check className="w-3 h-3" /> Passwords match
+                </p>
+              )}
             </div>
 
             <div className="flex items-start space-x-2">
@@ -227,7 +321,7 @@ export default function RegisterPage() {
                 id="terms"
                 checked={formData.agreedToTerms}
                 onChange={(e) => setFormData({ ...formData, agreedToTerms: e.target.checked })}
-                className="mt-1 w-4 h-4 rounded bg-slate-900 border-slate-700"
+                className="mt-1 w-4 h-4 rounded bg-slate-900 border-slate-700 accent-blue-600"
                 disabled={loading}
               />
               <label htmlFor="terms" className="text-sm text-slate-400">
@@ -236,11 +330,18 @@ export default function RegisterPage() {
             </div>
 
             <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-3 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+              type="submit"
+              disabled={loading || checkingUsername || usernameAvailable === false}
+              className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-3 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
-              {loading ? 'Creating account...' : 'Create account'}
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Creating account...</span>
+                </>
+              ) : (
+                <span>Create account</span>
+              )}
             </button>
 
             <div className="relative my-6">
@@ -277,7 +378,7 @@ export default function RegisterPage() {
                 <span>GitHub</span>
               </button>
             </div>
-          </div>
+          </form>
 
           <p className="text-center text-sm text-slate-400 mt-6">
             Already have an account?{' '}

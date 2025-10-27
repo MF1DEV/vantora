@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, GripVertical, Trash2, ExternalLink } from 'lucide-react'
+import { Plus, Loader2, Check, Copy, ExternalLink } from 'lucide-react'
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import ThemeSelector from '@/components/dashboard/ThemeSelector'
+import SocialMediaLinks from '@/components/dashboard/SocialMediaLinks'
+import AvatarUpload from '@/components/dashboard/AvatarUpload'
+import DraggableLink from '@/components/dashboard/DraggableLink'
+import EmojiPicker from '@/components/dashboard/EmojiPicker'
 
 interface Link {
   id: string
@@ -10,6 +17,7 @@ interface Link {
   url: string
   position: number
   is_active: boolean
+  icon?: string
 }
 
 export default function DashboardPage() {
@@ -17,8 +25,25 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<any>(null)
   const [links, setLinks] = useState<Link[]>([])
   const [loading, setLoading] = useState(true)
-  const [editingLink, setEditingLink] = useState<string | null>(null)
-  const [newLink, setNewLink] = useState({ title: '', url: '' })
+  const [saving, setSaving] = useState(false)
+  const [addingLink, setAddingLink] = useState(false)
+  const [newLink, setNewLink] = useState({ title: '', url: '', icon: '' })
+  const [errors, setErrors] = useState<{ [key: string]: string }>({})
+  const [successMessage, setSuccessMessage] = useState('')
+  const [activeTab, setActiveTab] = useState<'profile' | 'theme'>('profile')
+  const [theme, setTheme] = useState({
+    background: 'gradient-blue',
+    buttonStyle: 'rounded',
+    accentColor: 'blue',
+  })
+  const [copied, setCopied] = useState(false)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
   useEffect(() => {
     loadData()
@@ -36,6 +61,15 @@ export default function DashboardPage() {
       .single()
 
     setProfile(profileData)
+    
+    // Set theme from profile
+    if (profileData) {
+      setTheme({
+        background: profileData.theme_background || 'gradient-blue',
+        buttonStyle: profileData.theme_button_style || 'rounded',
+        accentColor: profileData.theme_accent_color || 'blue',
+      })
+    }
 
     // Load links
     const { data: linksData } = await supabase
@@ -48,29 +82,96 @@ export default function DashboardPage() {
     setLoading(false)
   }
 
+  const copyProfileLink = () => {
+    const url = `${window.location.origin}/${profile?.username}`
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const exportData = async () => {
+    const exportObj = {
+      profile: {
+        username: profile?.username,
+        display_name: profile?.display_name,
+        bio: profile?.bio,
+        avatar_url: profile?.avatar_url,
+        theme: {
+          background: profile?.theme_background,
+          buttonStyle: profile?.theme_button_style,
+          accentColor: profile?.theme_accent_color,
+        },
+      },
+      links: links.map(link => ({
+        title: link.title,
+        url: link.url,
+        is_active: link.is_active,
+        position: link.position,
+      })),
+      exported_at: new Date().toISOString(),
+    }
+
+    const dataStr = JSON.stringify(exportObj, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `vantora-${profile?.username}-${Date.now()}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+    
+    showSuccess('Data exported successfully!')
+  }
+
+  const validateUrl = (url: string) => {
+    try {
+      new URL(url)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   const addLink = async () => {
-    if (!newLink.title || !newLink.url) {
-      alert('Please fill in both title and URL')
+    setErrors({})
+    
+    if (!newLink.title.trim()) {
+      setErrors({ title: 'Title is required' })
+      return
+    }
+
+    if (!newLink.url.trim()) {
+      setErrors({ url: 'URL is required' })
+      return
+    }
+
+    if (!validateUrl(newLink.url)) {
+      setErrors({ url: 'Please enter a valid URL (include https://)' })
       return
     }
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const { error } = await supabase
+    setAddingLink(true)
+
+const { error } = await supabase
       .from('links')
       .insert({
         user_id: user.id,
-        title: newLink.title,
-        url: newLink.url,
+        title: newLink.title.trim(),
+        url: newLink.url.trim(),
+        icon: newLink.icon || null,
         position: links.length,
       })
 
+    setAddingLink(false)
+
     if (error) {
-      console.error('Error adding link:', error)
-      alert('Failed to add link')
+      setErrors({ general: 'Failed to add link. Please try again.' })
     } else {
-      setNewLink({ title: '', url: '' })
+      setNewLink({ title: '', url: '', icon: '' })
+      showSuccess('Link added successfully!')
       loadData()
     }
   }
@@ -84,85 +185,265 @@ export default function DashboardPage() {
       .eq('id', id)
 
     if (error) {
-      console.error('Error deleting link:', error)
-      alert('Failed to delete link')
+      setErrors({ general: 'Failed to delete link' })
     } else {
+      showSuccess('Link deleted successfully!')
       loadData()
     }
+  }
+
+  const toggleLink = async (id: string, currentState: boolean) => {
+    const { error } = await supabase
+      .from('links')
+      .update({ is_active: !currentState })
+      .eq('id', id)
+
+    if (error) {
+      setErrors({ general: 'Failed to toggle link' })
+    } else {
+      showSuccess(`Link ${!currentState ? 'enabled' : 'disabled'}!`)
+      loadData()
+    }
+  }
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (!over || active.id === over.id) return
+
+    const oldIndex = links.findIndex((link) => link.id === active.id)
+    const newIndex = links.findIndex((link) => link.id === over.id)
+
+    const newLinks = arrayMove(links, oldIndex, newIndex)
+    setLinks(newLinks)
+
+    // Update positions in database
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const updates = newLinks.map((link, index) => ({
+      id: link.id,
+      position: index,
+    }))
+
+    for (const update of updates) {
+      await supabase
+        .from('links')
+        .update({ position: update.position })
+        .eq('id', update.id)
+    }
+
+    showSuccess('Link order updated!')
   }
 
   const updateProfile = async (field: string, value: string) => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    setSaving(true)
+
     const { error } = await supabase
       .from('profiles')
       .update({ [field]: value, updated_at: new Date().toISOString() })
       .eq('id', user.id)
 
+    setSaving(false)
+
     if (error) {
-      console.error('Error updating profile:', error)
-      alert('Failed to update profile')
+      setErrors({ [field]: 'Failed to update' })
     } else {
+      showSuccess('Profile updated!')
       loadData()
     }
   }
 
+  const handleThemeChange = async (newTheme: { background: string; buttonStyle: string; accentColor: string }) => {
+    setTheme(newTheme)
+    
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    setSaving(true)
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        theme_background: newTheme.background,
+        theme_button_style: newTheme.buttonStyle,
+        theme_accent_color: newTheme.accentColor,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.id)
+
+    setSaving(false)
+
+    if (!error) {
+      showSuccess('Theme updated!')
+      loadData()
+    }
+  }
+
+  const showSuccess = (message: string) => {
+    setSuccessMessage(message)
+    setTimeout(() => setSuccessMessage(''), 3000)
+  }
+
   if (loading) {
-    return <div className="text-white">Loading...</div>
+    return (
+      <div className="max-w-4xl mx-auto flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    )
   }
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Success Message */}
+      {successMessage && (
+        <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg flex items-center space-x-2 text-green-400 animate-in fade-in slide-in-from-top-2 duration-300">
+          <Check className="w-5 h-5" />
+          <span>{successMessage}</span>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {errors.general && (
+        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400">
+          {errors.general}
+        </div>
+      )}
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-        <p className="text-slate-400">Manage your profile and links</p>
+        <div className="flex items-center justify-between">
+          <p className="text-slate-400">Manage your profile and links</p>
+          {profile && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={copyProfileLink}
+                className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-sm text-slate-300 transition"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-400" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    <span>Copy Link</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={exportData}
+                className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-sm text-slate-300 transition"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Export</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Profile Editor */}
+        {/* Profile/Theme Editor */}
         <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
-          <h2 className="text-xl font-semibold text-white mb-6">Profile Settings</h2>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setActiveTab('profile')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  activeTab === 'profile'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Profile
+              </button>
+              <button
+                onClick={() => setActiveTab('theme')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  activeTab === 'theme'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Theme
+              </button>
+            </div>
+            {saving && <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />}
+          </div>
           
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Username</label>
-              <div className="flex bg-slate-900/50 border border-slate-700 rounded-lg overflow-hidden">
-                <span className="px-3 py-3 text-slate-400 text-sm">vantora.id/</span>
-                <input
-                  type="text"
-                  value={profile?.username || ''}
-                  disabled
-                  className="flex-1 bg-transparent px-2 py-3 text-slate-500 outline-none cursor-not-allowed"
+          {activeTab === 'profile' ? (
+            <div className="space-y-4">
+              {/* Avatar Upload */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Profile Picture</label>
+                <AvatarUpload
+                  currentAvatarUrl={profile?.avatar_url}
+                  userId={profile?.id}
+                  onUploadComplete={() => {
+                    loadData()
+                  }}
                 />
               </div>
-              <p className="text-xs text-slate-500 mt-1">Username cannot be changed</p>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Display Name</label>
-              <input
-                type="text"
-                value={profile?.display_name || ''}
-                onChange={(e) => setProfile({ ...profile, display_name: e.target.value })}
-                onBlur={(e) => updateProfile('display_name', e.target.value)}
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500 transition"
-                placeholder="Your Name"
-              />
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Username</label>
+                <div className="flex bg-slate-900/50 border border-slate-700 rounded-lg overflow-hidden">
+                  <span className="px-3 py-3 text-slate-400 text-sm">vantora.id/</span>
+                  <input
+                    type="text"
+                    value={profile?.username || ''}
+                    disabled
+                    className="flex-1 bg-transparent px-2 py-3 text-slate-500 outline-none cursor-not-allowed"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 mt-1">Username cannot be changed</p>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Bio</label>
-              <textarea
-                value={profile?.bio || ''}
-                onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                onBlur={(e) => updateProfile('bio', e.target.value)}
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500 transition resize-none"
-                rows={3}
-                placeholder="Tell people about yourself..."
-              />
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Display Name</label>
+                <input
+                  type="text"
+                  value={profile?.display_name || ''}
+                  onChange={(e) => setProfile({ ...profile, display_name: e.target.value })}
+                  onBlur={(e) => updateProfile('display_name', e.target.value)}
+                  className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500 transition"
+                  placeholder="Your Name"
+                  maxLength={50}
+                />
+                {errors.display_name && (
+                  <p className="text-xs text-red-400 mt-1">{errors.display_name}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Bio</label>
+                <textarea
+                  value={profile?.bio || ''}
+                  onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                  onBlur={(e) => updateProfile('bio', e.target.value)}
+                  className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500 transition resize-none"
+                  rows={3}
+                  placeholder="Tell people about yourself..."
+                  maxLength={160}
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  {profile?.bio?.length || 0}/160 characters
+                </p>
+                {errors.bio && (
+                  <p className="text-xs text-red-400 mt-1">{errors.bio}</p>
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <ThemeSelector currentTheme={theme} onThemeChange={handleThemeChange} />
+          )}
         </div>
 
         {/* Profile Preview */}
@@ -171,8 +452,18 @@ export default function DashboardPage() {
           
           <div className="bg-slate-900/50 rounded-xl p-6">
             <div className="flex flex-col items-center text-center mb-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-3" />
-              <h3 className="text-lg font-semibold text-white">{profile?.display_name || 'Your Name'}</h3>
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.display_name || profile.username}
+                  className="w-20 h-20 rounded-full object-cover border-2 border-slate-700 mb-3"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-3" />
+              )}
+              <h3 className="text-lg font-semibold text-white">
+                {profile?.display_name || 'Your Name'}
+              </h3>
               <p className="text-sm text-slate-400">@{profile?.username}</p>
               {profile?.bio && (
                 <p className="text-sm text-slate-300 mt-2">{profile.bio}</p>
@@ -180,17 +471,17 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-2">
-              {links.map((link) => (
+              {links.filter(link => link.is_active).map((link) => (
                 <div
                   key={link.id}
                   className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3 hover:bg-slate-700/50 transition"
                 >
-                  <span className="text-sm text-white">{link.title}</span>
-                  <ExternalLink className="w-4 h-4 text-slate-400" />
+                  <span className="text-sm text-white truncate">{link.title}</span>
+                  <ExternalLink className="w-4 h-4 text-slate-400 flex-shrink-0" />
                 </div>
               ))}
-              {links.length === 0 && (
-                <p className="text-center text-slate-500 text-sm py-4">No links yet</p>
+              {links.filter(link => link.is_active).length === 0 && (
+                <p className="text-center text-slate-500 text-sm py-4">No visible links</p>
               )}
             </div>
           </div>
@@ -202,56 +493,122 @@ export default function DashboardPage() {
         <h2 className="text-xl font-semibold text-white mb-6">Manage Links</h2>
 
         {/* Add New Link */}
-        <div className="mb-6 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
-          <h3 className="text-sm font-medium text-slate-300 mb-3">Add New Link</h3>
-          <div className="grid md:grid-cols-2 gap-3">
-            <input
-              type="text"
-              placeholder="Link Title"
-              value={newLink.title}
-              onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
-              className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500 transition"
-            />
-            <input
-              type="url"
-              placeholder="https://example.com"
-              value={newLink.url}
-              onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
-              className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500 transition"
-            />
-          </div>
-          <button
-            onClick={addLink}
-            className="mt-3 flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Link</span>
-          </button>
-        </div>
+        <div className="mb-6 space-y-4">
+          {/* Social Media Quick Add */}
+          <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+            <SocialMediaLinks onAddLink={(title, url) => {
+              const autoAdd = async () => {
+                const { data: { user } } = await supabase.auth.getUser()
+                if (!user) return
 
-        {/* Links List */}
-        <div className="space-y-2">
-          {links.map((link) => (
-            <div
-              key={link.id}
-              className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg border border-slate-700"
-            >
-              <div className="flex items-center space-x-3 flex-1">
-                <GripVertical className="w-5 h-5 text-slate-500 cursor-move" />
-                <div className="flex-1">
-                  <div className="text-white font-medium">{link.title}</div>
-                  <div className="text-sm text-slate-400 truncate">{link.url}</div>
-                </div>
+                setAddingLink(true)
+
+                const { error } = await supabase
+                  .from('links')
+                  .insert({
+                    user_id: user.id,
+                    title,
+                    url,
+                    position: links.length,
+                  })
+
+                setAddingLink(false)
+
+                if (!error) {
+                  showSuccess(`${title} link added!`)
+                  loadData()
+                } else {
+                  setErrors({ general: 'Failed to add social link' })
+                }
+              }
+              autoAdd()
+            }} />
+          </div>
+
+{/* Custom Link Form */}
+          <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+            <h3 className="text-sm font-medium text-slate-300 mb-3">Add Custom Link</h3>
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <EmojiPicker 
+                  onSelect={(emoji) => setNewLink({ ...newLink, icon: emoji })}
+                  currentIcon={newLink.icon}
+                />
+                <input
+                  type="text"
+                  placeholder="Link Title (e.g., My Website)"
+                  value={newLink.title}
+                  onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
+                  className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500 transition"
+                  maxLength={50}
+                />
+              </div>
+              {errors.title && (
+                <p className="text-xs text-red-400 mt-1">{errors.title}</p>
+              )}
+              <div>
+                <input
+                  type="url"
+                  placeholder="https://example.com"
+                  value={newLink.url}
+                  onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500 transition"
+                />
+                {errors.url && (
+                  <p className="text-xs text-red-400 mt-1">{errors.url}</p>
+                )}
               </div>
               <button
-                onClick={() => deleteLink(link.id)}
-                className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition"
+                onClick={addLink}
+                disabled={addingLink}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Trash2 className="w-5 h-5" />
+                {addingLink ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Adding...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span>Add Link</span>
+                  </>
+                )}
               </button>
             </div>
-          ))}
+          </div>
         </div>
+
+        {/* Links List with Drag & Drop */}
+        {links.length > 0 ? (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={links.map(l => l.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2">
+                {links.map((link) => (
+                  <DraggableLink
+                    key={link.id}
+                    link={link}
+                    onToggle={() => toggleLink(link.id, link.is_active)}
+                    onDelete={() => deleteLink(link.id)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        ) : (
+          <div className="text-center py-12">
+            <Plus className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+            <p className="text-slate-400 mb-2">No links yet</p>
+            <p className="text-slate-500 text-sm">Add your first link above to get started!</p>
+          </div>
+        )}
       </div>
     </div>
   )

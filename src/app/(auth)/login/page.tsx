@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
@@ -18,9 +18,28 @@ export default function LoginPage() {
     password: '',
   })
 
+  const validateForm = () => {
+    if (!formData.email) {
+      setError('Email is required')
+      return false
+    }
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      setError('Please enter a valid email address')
+      return false
+    }
+    if (!formData.password) {
+      setError('Password is required')
+      return false
+    }
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (!validateForm()) return
+
     setLoading(true)
 
     try {
@@ -36,7 +55,11 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       console.error('Login error:', err)
-      setError(err.message || 'Invalid email or password')
+      if (err.message.includes('Invalid login credentials')) {
+        setError('Invalid email or password')
+      } else {
+        setError(err.message || 'Failed to sign in. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -85,7 +108,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">Email</label>
               <input
@@ -95,6 +118,7 @@ export default function LoginPage() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500 transition"
                 disabled={loading}
+                autoComplete="email"
               />
             </div>
 
@@ -113,7 +137,7 @@ export default function LoginPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 pr-12 text-white outline-none focus:border-blue-500 transition"
                   disabled={loading}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
@@ -127,11 +151,18 @@ export default function LoginPage() {
             </div>
 
             <button
-              onClick={handleSubmit}
+              type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-3 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-3 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <span>Sign in</span>
+              )}
             </button>
 
             <div className="relative my-6">
@@ -168,7 +199,7 @@ export default function LoginPage() {
                 <span>GitHub</span>
               </button>
             </div>
-          </div>
+          </form>
 
           <p className="text-center text-sm text-slate-400 mt-6">
             Don't have an account?{' '}
