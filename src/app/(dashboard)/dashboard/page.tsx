@@ -494,23 +494,49 @@ const { error } = await supabase
 
         {/* Add New Link */}
         <div className="mb-6 space-y-4">
-          {/* Social Media Quick Add */}
+          {/* Social Media Links */}
           <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
-            <SocialMediaLinks onAddLink={(title, url) => {
-              const autoAdd = async () => {
+            <SocialMediaLinks
+              links={profile?.social_links || {}}
+              onAddLink={async (platform, url) => {
                 const { data: { user } } = await supabase.auth.getUser()
                 if (!user) return
 
-                setAddingLink(true)
+                setSaving(true)
 
-                const { error } = await supabase
-                  .from('links')
-                  .insert({
-                    user_id: user.id,
-                    title,
-                    url,
-                    position: links.length,
-                  })
+                try {
+                  const { data: currentProfile } = await supabase
+                    .from('profiles')
+                    .select('social_links')
+                    .eq('id', user.id)
+                    .single()
+
+                  const updatedLinks = {
+                    ...currentProfile?.social_links,
+                    [platform]: url
+                  }
+
+                  const { error } = await supabase
+                    .from('profiles')
+                    .update({
+                      social_links: updatedLinks
+                    })
+                    .eq('id', user.id)
+
+                  if (error) throw error
+
+                  setProfile((prev: any) => ({
+                    ...prev,
+                    social_links: updatedLinks
+                  }))
+
+                  setSuccessMessage('Social link added successfully')
+                } catch (error) {
+                  console.error('Error adding social link:', error)
+                  setErrors({ social: 'Failed to add social link' })
+                } finally {
+                  setSaving(false)
+                }
 
                 setAddingLink(false)
 
