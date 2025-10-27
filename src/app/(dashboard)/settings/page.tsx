@@ -107,14 +107,14 @@ export default function SettingsPage() {
       </div>
 
       {/* Account Information */}
-      <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 mb-6">
+      <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-6">
         <h2 className="text-xl font-semibold text-white mb-4">Account Information</h2>
         <div className="space-y-3 text-slate-300">
-          <div className="flex justify-between items-center py-2 border-b border-slate-700">
+          <div className="flex justify-between items-center py-2 border-b border-white/10">
             <span className="text-slate-400">Email</span>
             <span>{user?.email}</span>
           </div>
-          <div className="flex justify-between items-center py-2 border-b border-slate-700">
+          <div className="flex justify-between items-center py-2 border-b border-white/10">
             <span className="text-slate-400">Account Created</span>
             <span>{user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</span>
           </div>
@@ -122,7 +122,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Change Password */}
-      <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 mb-6">
+      <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-6">
         <h2 className="text-xl font-semibold text-white mb-4">Change Password</h2>
         
         {error && (
@@ -146,7 +146,7 @@ export default function SettingsPage() {
                 placeholder="Enter new password"
                 value={passwordData.newPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 pr-12 text-white outline-none focus:border-blue-500 transition"
+                className="w-full bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-3 pr-12 text-white outline-none focus:border-blue-500 transition"
                 disabled={loading}
               />
               <button
@@ -167,7 +167,7 @@ export default function SettingsPage() {
                 placeholder="Confirm new password"
                 value={passwordData.confirmPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 pr-12 text-white outline-none focus:border-blue-500 transition"
+                className="w-full bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-3 pr-12 text-white outline-none focus:border-blue-500 transition"
                 disabled={loading}
               />
               <button

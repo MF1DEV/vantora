@@ -71,16 +71,27 @@ export default async function PublicProfilePage({
 
   return (
     <div className={`min-h-screen text-white relative overflow-hidden ${bgClass}`}>
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {/* Gradient Orbs */}
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+        
+        {/* Grid */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px)`,
+          backgroundSize: '50px 50px'
+        }} />
+
+        {/* Animated stars */}
         {[...Array(50)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
+            className="absolute w-1 h-1 bg-white rounded-full animate-twinkle"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 3}s`,
-              opacity: Math.random() * 0.7 + 0.3
+              opacity: Math.random() * 0.5 + 0.2
             }}
           />
         ))}
@@ -94,10 +105,10 @@ export default async function PublicProfilePage({
       </div>
 
       <div className="relative z-10 max-w-2xl mx-auto px-6 py-20">
-        <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-3xl p-8 md:p-12">
+        <div className="backdrop-blur-sm border border-white/10 rounded-3xl p-8 md:p-12">
           <div className="flex flex-col items-center text-center mb-8">
             {profile.avatar_url ? (
-              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-slate-700 mb-4">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/10 mb-4">
                 <img
                   src={profile.avatar_url}
                   alt={profile.display_name || profile.username}

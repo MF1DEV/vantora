@@ -34,7 +34,7 @@ export default function ProfileLinks({ links, userId, buttonStyle, accentColor }
   }
 
   const getButtonClasses = () => {
-    const baseClasses = 'flex items-center justify-between w-full p-4 bg-slate-900/50 border border-slate-700 transition group'
+    const baseClasses = 'flex items-center justify-between w-full p-4 bg-slate-800/50 backdrop-blur-sm border border-white/10 transition group'
     
     const styleClasses: { [key: string]: string } = {
       'rounded': 'rounded-xl',
@@ -44,12 +44,12 @@ export default function ProfileLinks({ links, userId, buttonStyle, accentColor }
     }
 
     const colorClasses: { [key: string]: string } = {
-      'blue': 'hover:bg-slate-800/50 hover:border-blue-600',
-      'purple': 'hover:bg-slate-800/50 hover:border-purple-600',
-      'pink': 'hover:bg-slate-800/50 hover:border-pink-600',
-      'green': 'hover:bg-slate-800/50 hover:border-green-600',
-      'orange': 'hover:bg-slate-800/50 hover:border-orange-600',
-      'red': 'hover:bg-slate-800/50 hover:border-red-600',
+      'blue': 'hover:bg-slate-700/50 hover:border-blue-500',
+      'purple': 'hover:bg-slate-700/50 hover:border-purple-500',
+      'pink': 'hover:bg-slate-700/50 hover:border-pink-500',
+      'green': 'hover:bg-slate-700/50 hover:border-green-500',
+      'orange': 'hover:bg-slate-700/50 hover:border-orange-500',
+      'red': 'hover:bg-slate-700/50 hover:border-red-500',
     }
 
     return `${baseClasses} ${styleClasses[buttonStyle] || styleClasses['rounded']} ${colorClasses[accentColor] || colorClasses['blue']}`

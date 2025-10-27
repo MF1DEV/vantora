@@ -148,18 +148,29 @@ export default function RegisterPage() {
   const pwdStrength = passwordStrength()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white flex items-center justify-center px-4 relative overflow-hidden py-12">
-      {/* Animated stars */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-4 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {/* Gradient Orbs */}
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+        
+        {/* Grid */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px)`,
+          backgroundSize: '50px 50px'
+        }} />
+
+        {/* Animated stars */}
         {[...Array(50)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
+            className="absolute w-1 h-1 bg-white rounded-full animate-twinkle"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 3}s`,
-              opacity: Math.random() * 0.7 + 0.3
+              opacity: Math.random() * 0.5 + 0.2
             }}
           />
         ))}
@@ -173,7 +184,7 @@ export default function RegisterPage() {
           ← Back to home
         </Link>
 
-        <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl p-8">
+        <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-8">
           <div className="flex items-center justify-center mb-8">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg mr-3" />
             <span className="text-2xl font-bold">vantora.id</span>
@@ -240,7 +251,7 @@ export default function RegisterPage() {
                 placeholder="Enter your email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full bg-slate-900/50 border border-slate-700 rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500 transition"
+                className="w-full bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-3 text-white placeholder-slate-400 outline-none focus:border-blue-500 transition"
                 disabled={loading}
                 autoComplete="email"
               />
@@ -332,7 +343,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading || checkingUsername || usernameAvailable === false}
-              className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-3 font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-3 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {loading ? (
                 <>

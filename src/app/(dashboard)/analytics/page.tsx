@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
         <select
           value={timeRange}
           onChange={(e) => setTimeRange(Number(e.target.value))}
-          className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500"
+          className="backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500"
         >
           <option value={7}>Last 7 days</option>
           <option value={30}>Last 30 days</option>
@@ -146,8 +146,8 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center">
               <Eye className="w-6 h-6 text-blue-400" />
@@ -157,7 +157,7 @@ export default function AnalyticsPage() {
           <div className="text-sm text-slate-400">Profile Views</div>
         </div>
 
-        <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
+        <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-purple-600/20 rounded-xl flex items-center justify-center">
               <MousePointerClick className="w-6 h-6 text-purple-400" />
@@ -167,7 +167,7 @@ export default function AnalyticsPage() {
           <div className="text-sm text-slate-400">Link Clicks</div>
         </div>
 
-        <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
+        <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-green-600/20 rounded-xl flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-green-400" />
@@ -183,7 +183,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Line Chart for Views Over Time */}
-      <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 mb-8">
+      <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-8">
         <h2 className="text-xl font-semibold text-white mb-6">Profile Views Over Time</h2>
         <div className="relative h-64">
           {/* Y-axis labels */}
@@ -282,7 +282,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Link Performance */}
-      <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
+      <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6">
         <h2 className="text-xl font-semibold text-white mb-6">Link Performance</h2>
         {analytics.linkStats.length > 0 ? (
           <div className="space-y-4">
@@ -292,9 +292,9 @@ export default function AnalyticsPage() {
                   <span className="text-white font-medium">{link.title}</span>
                   <span className="text-slate-400">{link.clicks} clicks</span>
                 </div>
-                <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
                   <div
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500"
                     style={{ width: `${(link.clicks / maxClicks) * 100}%` }}
                   />
                 </div>
