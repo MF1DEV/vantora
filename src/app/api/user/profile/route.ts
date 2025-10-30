@@ -5,7 +5,7 @@ import { type NextRequest } from 'next/server'
 // Get user profile
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 // Update user profile
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const updates = await request.json()
     
     const { data: { user }, error: authError } = await supabase.auth.getUser()

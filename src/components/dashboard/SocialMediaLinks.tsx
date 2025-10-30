@@ -25,6 +25,26 @@ const SOCIAL_PLATFORMS = [
 ]
 
 export default function SocialMediaLinks({ links = {}, readonly = false, className = '', onAddLink }: SocialMediaLinksProps) {
+  const [showForm, setShowForm] = useState(false)
+  const [selectedPlatform, setSelectedPlatform] = useState('')
+  const [url, setUrl] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (selectedPlatform && url && onAddLink) {
+      const platform = SOCIAL_PLATFORMS.find(p => p.id === selectedPlatform)
+      let fullUrl = url
+      
+      if (platform && platform.baseUrl && !url.startsWith('http') && !url.startsWith('mailto:')) {
+        fullUrl = platform.baseUrl + url
+      }
+      
+      onAddLink(selectedPlatform, fullUrl)
+      setSelectedPlatform('')
+      setUrl('')
+      setShowForm(false)
+    }
+  }
   return (
     <div className={`flex flex-col gap-4 ${className}`}>
       <div className="flex gap-3 justify-center flex-wrap">

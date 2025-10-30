@@ -53,6 +53,7 @@ export default function DashboardPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    // Load profile
     const { data: profileData } = await supabase
       .from('profiles')
       .select('*')
@@ -61,6 +62,7 @@ export default function DashboardPage() {
 
     setProfile(profileData)
     
+    // Set theme from profile
     if (profileData) {
       setTheme({
         background: profileData.theme_background || 'gradient-blue',
@@ -69,6 +71,7 @@ export default function DashboardPage() {
       })
     }
 
+    // Load links
     const { data: linksData } = await supabase
       .from('links')
       .select('*')
@@ -104,7 +107,6 @@ export default function DashboardPage() {
         url: link.url,
         is_active: link.is_active,
         position: link.position,
-        icon: link.icon,
       })),
       exported_at: new Date().toISOString(),
     }
@@ -153,7 +155,7 @@ export default function DashboardPage() {
 
     setAddingLink(true)
 
-    const { error } = await supabase
+const { error } = await supabase
       .from('links')
       .insert({
         user_id: user.id,
@@ -215,6 +217,7 @@ export default function DashboardPage() {
     const newLinks = arrayMove(links, oldIndex, newIndex)
     setLinks(newLinks)
 
+    // Update positions in database
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -295,13 +298,15 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Success Message */}
       {successMessage && (
-        <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg flex items-center space-x-2 text-green-400">
+        <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg flex items-center space-x-2 text-green-400 animate-in fade-in slide-in-from-top-2 duration-300">
           <Check className="w-5 h-5" />
           <span>{successMessage}</span>
         </div>
       )}
 
+      {/* Error Message */}
       {errors.general && (
         <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400">
           {errors.general}
@@ -345,6 +350,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
+        {/* Profile/Theme Editor */}
         <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex space-x-2">
@@ -374,6 +380,7 @@ export default function DashboardPage() {
           
           {activeTab === 'profile' ? (
             <div className="space-y-4">
+              {/* Avatar Upload */}
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">Profile Picture</label>
                 <AvatarUpload
@@ -410,6 +417,9 @@ export default function DashboardPage() {
                   placeholder="Your Name"
                   maxLength={50}
                 />
+                {errors.display_name && (
+                  <p className="text-xs text-red-400 mt-1">{errors.display_name}</p>
+                )}
               </div>
 
               <div>
@@ -426,6 +436,9 @@ export default function DashboardPage() {
                 <p className="text-xs text-slate-500 mt-1">
                   {profile?.bio?.length || 0}/160 characters
                 </p>
+                {errors.bio && (
+                  <p className="text-xs text-red-400 mt-1">{errors.bio}</p>
+                )}
               </div>
             </div>
           ) : (
@@ -433,6 +446,7 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* Profile Preview */}
         <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
           <h2 className="text-xl font-semibold text-white mb-6">Preview</h2>
           
@@ -462,10 +476,7 @@ export default function DashboardPage() {
                   key={link.id}
                   className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3 hover:bg-slate-700/50 transition"
                 >
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    {link.icon && <span className="text-lg flex-shrink-0">{link.icon}</span>}
-                    <span className="text-sm text-white truncate">{link.title}</span>
-                  </div>
+                  <span className="text-sm text-white truncate">{link.title}</span>
                   <ExternalLink className="w-4 h-4 text-slate-400 flex-shrink-0" />
                 </div>
               ))}
@@ -477,38 +488,60 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Links Manager */}
       <div className="mt-8 bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
         <h2 className="text-xl font-semibold text-white mb-6">Manage Links</h2>
 
+        {/* Add New Link */}
         <div className="mb-6 space-y-4">
+          {/* Social Media Links */}
           <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
-            <SocialMediaLinks onAddLink={(title, url) => {
-              const autoAdd = async () => {
+            <SocialMediaLinks
+              links={profile?.social_links || {}}
+              onAddLink={async (platform, url) => {
                 const { data: { user } } = await supabase.auth.getUser()
                 if (!user) return
 
-                setAddingLink(true)
+                setSaving(true)
 
-                const { error } = await supabase
-                  .from('links')
-                  .insert({
-                    user_id: user.id,
-                    title,
-                    url,
-                    position: links.length,
-                  })
+                try {
+                  const { data: currentProfile } = await supabase
+                    .from('profiles')
+                    .select('social_links')
+                    .eq('id', user.id)
+                    .single()
 
-                setAddingLink(false)
+                  const updatedLinks = {
+                    ...currentProfile?.social_links,
+                    [platform]: url
+                  }
 
-                if (!error) {
-                  showSuccess(`${title} link added!`)
-                  loadData()
+                  const { error } = await supabase
+                    .from('profiles')
+                    .update({
+                      social_links: updatedLinks
+                    })
+                    .eq('id', user.id)
+
+                  if (error) throw error
+
+                  setProfile((prev: any) => ({
+                    ...prev,
+                    social_links: updatedLinks
+                  }))
+
+                  showSuccess('Social link added successfully')
+                } catch (error) {
+                  console.error('Error adding social link:', error)
+                  setErrors({ social: 'Failed to add social link' })
+                } finally {
+                  setSaving(false)
                 }
-              }
-              autoAdd()
-            }} />
+              }}
+            />
           </div>
 
+{/* Custom Link Form */}
           <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
             <h3 className="text-sm font-medium text-slate-300 mb-3">Add Custom Link</h3>
             <div className="space-y-3">
@@ -519,7 +552,7 @@ export default function DashboardPage() {
                 />
                 <input
                   type="text"
-                  placeholder="Link Title"
+                  placeholder="Link Title (e.g., My Website)"
                   value={newLink.title}
                   onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
                   className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500 transition"
@@ -527,7 +560,7 @@ export default function DashboardPage() {
                 />
               </div>
               {errors.title && (
-                <p className="text-xs text-red-400">{errors.title}</p>
+                <p className="text-xs text-red-400 mt-1">{errors.title}</p>
               )}
               <div>
                 <input
@@ -544,7 +577,7 @@ export default function DashboardPage() {
               <button
                 onClick={addLink}
                 disabled={addingLink}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium transition disabled:opacity-50"
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {addingLink ? (
                   <>
@@ -562,6 +595,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Links List with Drag & Drop */}
         {links.length > 0 ? (
           <DndContext
             sensors={sensors}

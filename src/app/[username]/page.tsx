@@ -128,10 +128,7 @@ export default async function PublicProfilePage({
           </div>
 
           <ProfileLinks 
-            links={links || []} 
-            userId={profile.id}
-            buttonStyle={buttonStyle}
-            accentColor={accentColor}
+            username={profile.username}
           />
 
 <div className="mt-12 pt-6 border-t border-slate-700">

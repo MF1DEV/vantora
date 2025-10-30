@@ -4,7 +4,7 @@ import { type NextRequest } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const data = await request.formData()
     const file = data.get('file') as File
     

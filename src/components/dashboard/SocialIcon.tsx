@@ -10,7 +10,7 @@ import {
   Linkedin,
   Mail,
   Globe,
-  type Icon as LucideIcon
+  type LucideIcon
 } from 'lucide-react'
 
 const SOCIAL_ICONS: Record<string, LucideIcon> = {

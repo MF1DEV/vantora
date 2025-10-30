@@ -5,7 +5,7 @@ import { type NextRequest } from 'next/server'
 export async function POST(request: NextRequest) {
   try {
     const requestUrl = new URL(request.url)
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const { email, password } = await request.json()
 

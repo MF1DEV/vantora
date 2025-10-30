@@ -5,7 +5,7 @@ import { type NextRequest } from 'next/server'
 // Get user's links
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 // Update user's links
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const { links } = await request.json()
     
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 // Delete a link
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const { searchParams } = new URL(request.url)
     const linkId = searchParams.get('id')
     

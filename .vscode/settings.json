@@ -16,5 +16,6 @@
   "emmet.includeLanguages": {
     "javascript": "javascriptreact",
     "typescript": "typescriptreact"
-  }
+  },
+  "CodeGPT.apiKey": "Anthropic"
 }
