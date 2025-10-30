@@ -4,6 +4,10 @@ export const getBackgroundClass = (background: string) => {
     'gradient-purple': 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900',
     'gradient-pink': 'bg-gradient-to-br from-slate-900 via-pink-900 to-slate-900',
     'gradient-green': 'bg-gradient-to-br from-slate-900 via-green-900 to-slate-900',
+    'gradient-sunset': 'bg-gradient-to-br from-orange-900 via-red-900 to-purple-900',
+    'gradient-ocean': 'bg-gradient-to-br from-blue-900 via-cyan-900 to-teal-900',
+    'gradient-forest': 'bg-gradient-to-br from-green-900 via-emerald-900 to-teal-900',
+    'gradient-midnight': 'bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900',
     'solid-dark': 'bg-slate-900',
     'solid-black': 'bg-black',
   }

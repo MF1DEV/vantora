@@ -10,6 +10,8 @@ import SocialMediaLinks from '@/components/dashboard/SocialMediaLinks'
 import AvatarUpload from '@/components/dashboard/AvatarUpload'
 import DraggableLink from '@/components/dashboard/DraggableLink'
 import EmojiPicker from '@/components/dashboard/EmojiPicker'
+import QRCodeGenerator from '@/components/dashboard/QRCodeGenerator'
+import LinkScheduler from '@/components/dashboard/LinkScheduler'
 
 interface Link {
   id: string
@@ -27,7 +29,14 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [addingLink, setAddingLink] = useState(false)
-  const [newLink, setNewLink] = useState({ title: '', url: '', icon: '' })
+  const [newLink, setNewLink] = useState({ 
+    title: '', 
+    url: '', 
+    icon: '',
+    isScheduled: false,
+    scheduledStart: '',
+    scheduledEnd: ''
+  })
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const [successMessage, setSuccessMessage] = useState('')
   const [activeTab, setActiveTab] = useState<'profile' | 'theme'>('profile')
@@ -155,7 +164,7 @@ export default function DashboardPage() {
 
     setAddingLink(true)
 
-const { error } = await supabase
+    const { error } = await supabase
       .from('links')
       .insert({
         user_id: user.id,
@@ -163,6 +172,9 @@ const { error } = await supabase
         url: newLink.url.trim(),
         icon: newLink.icon || null,
         position: links.length,
+        is_scheduled: newLink.isScheduled,
+        scheduled_start: newLink.isScheduled && newLink.scheduledStart ? new Date(newLink.scheduledStart).toISOString() : null,
+        scheduled_end: newLink.isScheduled && newLink.scheduledEnd ? new Date(newLink.scheduledEnd).toISOString() : null,
       })
 
     setAddingLink(false)
@@ -170,7 +182,7 @@ const { error } = await supabase
     if (error) {
       setErrors({ general: 'Failed to add link. Please try again.' })
     } else {
-      setNewLink({ title: '', url: '', icon: '' })
+      setNewLink({ title: '', url: '', icon: '', isScheduled: false, scheduledStart: '', scheduledEnd: '' })
       showSuccess('Link added successfully!')
       loadData()
     }
@@ -344,6 +356,7 @@ const { error } = await supabase
                 </svg>
                 <span>Export</span>
               </button>
+              <QRCodeGenerator username={profile.username} />
             </div>
           )}
         </div>
@@ -574,6 +587,14 @@ const { error } = await supabase
                   <p className="text-xs text-red-400 mt-1">{errors.url}</p>
                 )}
               </div>
+              <LinkScheduler
+                isScheduled={newLink.isScheduled}
+                scheduledStart={newLink.scheduledStart}
+                scheduledEnd={newLink.scheduledEnd}
+                onScheduleChange={(isScheduled, start, end) => 
+                  setNewLink({ ...newLink, isScheduled, scheduledStart: start, scheduledEnd: end })
+                }
+              />
               <button
                 onClick={addLink}
                 disabled={addingLink}

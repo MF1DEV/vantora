@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff, Trash2 } from 'lucide-react'
+import BackgroundMusic from '@/components/dashboard/BackgroundMusic'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -12,6 +13,7 @@ export default function SettingsPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [passwordData, setPasswordData] = useState({
@@ -27,6 +29,16 @@ export default function SettingsPage() {
   const loadUser = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     setUser(user)
+    
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+      
+      setProfile(profile)
+    }
   }
 
   const handlePasswordChange = async () => {
@@ -189,6 +201,19 @@ export default function SettingsPage() {
           </button>
         </div>
       </div>
+
+      {/* Background Music */}
+      {user && profile && (
+        <div className="mb-6">
+          <BackgroundMusic
+            userId={user.id}
+            currentMusicUrl={profile.background_music_url}
+            musicEnabled={profile.music_enabled}
+            musicVolume={profile.music_volume}
+            onUpdate={loadUser}
+          />
+        </div>
+      )}
 
       {/* Danger Zone */}
       <div className="bg-red-500/10 border border-red-500/50 rounded-2xl p-6">

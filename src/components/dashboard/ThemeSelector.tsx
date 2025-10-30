@@ -18,6 +18,10 @@ export default function ThemeSelector({ currentTheme, onThemeChange }: ThemeSele
     { id: 'gradient-purple', name: 'Purple Gradient', class: 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900' },
     { id: 'gradient-pink', name: 'Pink Gradient', class: 'bg-gradient-to-br from-slate-900 via-pink-900 to-slate-900' },
     { id: 'gradient-green', name: 'Green Gradient', class: 'bg-gradient-to-br from-slate-900 via-green-900 to-slate-900' },
+    { id: 'gradient-sunset', name: 'Sunset', class: 'bg-gradient-to-br from-orange-900 via-red-900 to-purple-900' },
+    { id: 'gradient-ocean', name: 'Ocean', class: 'bg-gradient-to-br from-blue-900 via-cyan-900 to-teal-900' },
+    { id: 'gradient-forest', name: 'Forest', class: 'bg-gradient-to-br from-green-900 via-emerald-900 to-teal-900' },
+    { id: 'gradient-midnight', name: 'Midnight', class: 'bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900' },
     { id: 'solid-dark', name: 'Dark', class: 'bg-slate-900' },
     { id: 'solid-black', name: 'Black', class: 'bg-black' },
   ]
@@ -43,7 +47,7 @@ export default function ThemeSelector({ currentTheme, onThemeChange }: ThemeSele
       {/* Background Selection */}
       <div>
         <h3 className="text-sm font-medium text-slate-300 mb-3">Background</h3>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {backgrounds.map((bg) => (
             <button
               key={bg.id}

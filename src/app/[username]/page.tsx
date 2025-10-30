@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import ProfileLinks from '@/components/profile/ProfileLinks'
 import SocialMediaLinks from '@/components/dashboard/SocialMediaLinks'
+import AudioPlayer from '@/components/profile/AudioPlayer'
 import { getBackgroundClass } from '@/lib/utils/theme'
 
 interface Link {
@@ -162,6 +163,15 @@ export default async function PublicProfilePage({
           </div>
         </div>
       </div>
+
+      {/* Background Music Player */}
+      {profile.music_enabled && profile.background_music_url && (
+        <AudioPlayer 
+          musicUrl={profile.background_music_url} 
+          volume={profile.music_volume || 0.5}
+          autoPlay={true}
+        />
+      )}
     </div>
   )
 }
