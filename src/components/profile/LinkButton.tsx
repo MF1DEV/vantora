@@ -16,15 +16,16 @@ export function LinkButton({ title, url, icon, onClick }: LinkButtonProps) {
       target="_blank"
       rel="noopener noreferrer"
       onClick={onClick}
-      className="w-full px-6 py-3 flex items-center justify-between bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+      className="group w-full px-6 py-4 flex items-center justify-between bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
     >
       <div className="flex items-center gap-3">
         {icon && (
-          <span className="text-xl">{icon}</span>
+          <span className="text-2xl flex-shrink-0">{icon}</span>
         )}
-        <span className="font-medium">{title}</span>
+        <span className="font-medium text-white">{title}</span>
       </div>
-      <ExternalLink size={18} className="text-slate-400" />
+      <ExternalLink size={18} className="text-slate-400 group-hover:text-white transition-colors flex-shrink-0" />
     </a>
   )
 }
+

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import ProfileLinks from '@/components/profile/ProfileLinks'
+import SocialMediaLinks from '@/components/dashboard/SocialMediaLinks'
 import { getBackgroundClass } from '@/lib/utils/theme'
 
 interface Link {
@@ -123,7 +124,14 @@ export default async function PublicProfilePage({
             </h1>
             <p className="text-slate-400 mb-4">@{profile.username}</p>
             {profile.bio && (
-              <p className="text-slate-300 max-w-md">{profile.bio}</p>
+              <p className="text-slate-300 max-w-md mb-4">{profile.bio}</p>
+            )}
+            
+            {/* Social Media Links */}
+            {profile.social_links && Object.keys(profile.social_links).length > 0 && (
+              <div className="flex gap-3 justify-center mt-4">
+                <SocialMediaLinks links={profile.social_links} readonly />
+              </div>
             )}
           </div>
 

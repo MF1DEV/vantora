@@ -17,6 +17,10 @@ interface AnalyticsData {
     date: string
     count: number
   }>
+  topReferrers: Array<{
+    referrer: string
+    count: number
+  }>
 }
 
 export default function AnalyticsPage() {
@@ -26,6 +30,7 @@ export default function AnalyticsPage() {
     totalClicks: 0,
     linkStats: [],
     dailyViews: [],
+    topReferrers: [],
   })
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState(7) // days
@@ -105,11 +110,43 @@ export default function AnalyticsPage() {
       count,
     }))
 
+    // Get top referrers
+    const { data: referrerData } = await supabase
+      .from('analytics')
+      .select('referrer')
+      .eq('user_id', user.id)
+      .eq('event_type', 'view')
+      .gte('created_at', startDate.toISOString())
+      .not('referrer', 'is', null)
+      .not('referrer', 'eq', '')
+
+    const referrerMap = new Map<string, number>()
+    referrerData?.forEach((item) => {
+      const referrer = item.referrer
+      if (referrer && referrer !== 'direct' && referrer !== '') {
+        // Extract domain from URL
+        try {
+          const url = new URL(referrer)
+          const domain = url.hostname.replace('www.', '')
+          referrerMap.set(domain, (referrerMap.get(domain) || 0) + 1)
+        } catch {
+          // If not a valid URL, use as is
+          referrerMap.set(referrer, (referrerMap.get(referrer) || 0) + 1)
+        }
+      }
+    })
+
+    const topReferrers = Array.from(referrerMap.entries())
+      .map(([referrer, count]) => ({ referrer, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5)
+
     setAnalytics({
       totalViews: viewCount || 0,
       totalClicks: clickCount || 0,
       linkStats: linkStats.sort((a, b) => b.clicks - a.clicks),
       dailyViews,
+      topReferrers,
     })
 
     setLoading(false)
@@ -282,7 +319,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Link Performance */}
-      <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+      <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-8">
         <h2 className="text-xl font-semibold text-white mb-6">Link Performance</h2>
         {analytics.linkStats.length > 0 ? (
           <div className="space-y-4">
@@ -306,6 +343,32 @@ export default function AnalyticsPage() {
             <BarChart3 className="w-12 h-12 text-slate-600 mx-auto mb-4" />
             <p className="text-slate-400">No link clicks yet</p>
             <p className="text-slate-500 text-sm mt-2">Share your profile to start getting clicks!</p>
+          </div>
+        )}
+      </div>
+
+      {/* Top Referrers */}
+      <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+        <h2 className="text-xl font-semibold text-white mb-6">Top Referrers</h2>
+        {analytics.topReferrers.length > 0 ? (
+          <div className="space-y-3">
+            {analytics.topReferrers.map((referrer, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-400 font-semibold text-sm">
+                    {index + 1}
+                  </div>
+                  <span className="text-white font-medium">{referrer.referrer}</span>
+                </div>
+                <span className="text-slate-400">{referrer.count} views</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <TrendingUp className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+            <p className="text-slate-400">No referrer data yet</p>
+            <p className="text-slate-500 text-sm mt-2">Share your profile link to see where your visitors come from!</p>
           </div>
         )}
       </div>
