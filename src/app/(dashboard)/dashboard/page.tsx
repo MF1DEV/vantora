@@ -591,8 +591,13 @@ export default function DashboardPage() {
                 isScheduled={newLink.isScheduled}
                 scheduledStart={newLink.scheduledStart}
                 scheduledEnd={newLink.scheduledEnd}
-                onScheduleChange={(isScheduled, start, end) => 
-                  setNewLink({ ...newLink, isScheduled, scheduledStart: start, scheduledEnd: end })
+                onScheduleChange={(data) => 
+                  setNewLink({ 
+                    ...newLink, 
+                    isScheduled: data.is_scheduled, 
+                    scheduledStart: data.scheduled_start || '', 
+                    scheduledEnd: data.scheduled_end || '' 
+                  })
                 }
               />
               <button
