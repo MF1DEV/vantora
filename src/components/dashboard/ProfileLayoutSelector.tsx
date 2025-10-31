@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { LayoutGrid, List, Grid2x2, Layers, Check } from 'lucide-react'
+import { LayoutGrid, List, Grid, Layers, Check } from 'lucide-react'
 
 interface ProfileLayoutSelectorProps {
   currentLayout: string
@@ -27,7 +27,7 @@ const layouts = [
     id: 'grid',
     name: 'Grid',
     description: 'Two-column grid layout',
-    icon: Grid2x2,
+    icon: Grid,
     preview: (
       <div className="grid grid-cols-2 gap-1.5">
         <div className="h-8 bg-slate-600 rounded" />
