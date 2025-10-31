@@ -6,6 +6,7 @@ import { Plus, Loader2, Check, Copy, ExternalLink } from 'lucide-react'
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import ThemeSelector from '@/components/dashboard/ThemeSelector'
+import AdvancedThemeCustomizer from '@/components/dashboard/AdvancedThemeCustomizer'
 import SocialMediaLinks from '@/components/dashboard/SocialMediaLinks'
 import AvatarUpload from '@/components/dashboard/AvatarUpload'
 import DraggableLink from '@/components/dashboard/DraggableLink'
@@ -47,7 +48,7 @@ export default function DashboardPage() {
   })
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const [successMessage, setSuccessMessage] = useState('')
-  const [activeTab, setActiveTab] = useState<'profile' | 'theme'>('profile')
+  const [activeTab, setActiveTab] = useState<'profile' | 'theme' | 'advanced'>('profile')
   const [theme, setTheme] = useState({
     background: 'gradient-blue',
     buttonStyle: 'rounded',
@@ -478,6 +479,16 @@ export default function DashboardPage() {
               >
                 Theme
               </button>
+              <button
+                onClick={() => setActiveTab('advanced')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  activeTab === 'advanced'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Advanced
+              </button>
             </div>
             {saving && <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />}
           </div>
@@ -545,8 +556,17 @@ export default function DashboardPage() {
                 )}
               </div>
             </div>
-          ) : (
+          ) : activeTab === 'theme' ? (
             <ThemeSelector currentTheme={theme} onThemeChange={handleThemeChange} />
+          ) : (
+            <AdvancedThemeCustomizer 
+              userId={profile?.id}
+              initialData={profile}
+              onSave={() => {
+                loadData()
+                showSuccess('Advanced theme saved successfully!')
+              }}
+            />
           )}
         </div>
 
