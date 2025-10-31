@@ -16,20 +16,20 @@ export default function LandingPage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-slate-950">
       {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden">
-        {/* Gradient Orbs */}
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
-        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {/* Gradient Orbs - Reduced blur for better performance */}
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-[120px] opacity-20 animate-blob" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-[120px] opacity-20 animate-blob animation-delay-2000" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-[120px] opacity-15 animate-blob animation-delay-4000" />
         
-        {/* Grid */}
-        <div className="absolute inset-0" style={{
-          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px)`,
-          backgroundSize: '50px 50px'
+        {/* Subtle Grid */}
+        <div className="absolute inset-0 opacity-30" style={{
+          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
         }} />
 
-        {/* Animated stars */}
-        {[...Array(100)].map((_, i) => (
+        {/* Fewer animated stars - only 30 instead of 100 */}
+        {[...Array(30)].map((_, i) => (
           <div
             key={i}
             className="absolute w-1 h-1 bg-white rounded-full animate-twinkle"
@@ -37,7 +37,7 @@ export default function LandingPage() {
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 3}s`,
-              opacity: Math.random() * 0.5 + 0.2
+              opacity: Math.random() * 0.4 + 0.2
             }}
           />
         ))}
@@ -75,45 +75,45 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-32 pb-24 sm:pb-32">
         <div className="text-center max-w-4xl mx-auto">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 backdrop-blur-sm mb-8 animate-fade-in">
-            <Sparkles className="w-4 h-4 text-blue-400" />
+            <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
             <span className="text-sm font-medium text-blue-300">Your all-in-one link hub</span>
           </div>
 
-          {/* Main Heading */}
-          <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            <span className="block text-white">One Link.</span>
+          {/* Main Heading with improved spacing */}
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+            <span className="block text-white mb-2">One Link.</span>
             <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
               Infinite Possibilities.
             </span>
           </h1>
 
-          <p className="text-xl sm:text-2xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <p className="text-lg sm:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             Build a stunning bio link page with powerful analytics. 
             <span className="text-white font-semibold"> No coding required.</span>
           </p>
 
-          {/* CTA */}
+          {/* CTA - Improved mobile responsiveness */}
           <div className="max-w-lg mx-auto animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition duration-300" />
-              <div className="relative flex items-stretch overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 backdrop-blur-xl">
-                <div className="flex items-center px-4 py-4 border-r border-white/10">
-                  <span className="text-slate-400 font-medium">vantora.id/</span>
+              <div className="relative flex flex-col sm:flex-row items-stretch overflow-hidden rounded-2xl border border-white/10 bg-slate-900/50 backdrop-blur-xl">
+                <div className="flex items-center px-4 py-3 sm:py-4 border-b sm:border-b-0 sm:border-r border-white/10">
+                  <span className="text-slate-400 font-medium text-sm sm:text-base">vantora.id/</span>
                 </div>
                 <input
                   type="text"
                   placeholder="yourname"
                   value={username}
                   onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
-                  className="flex-1 bg-transparent px-4 py-4 text-white placeholder-slate-500 outline-none text-lg"
+                  className="flex-1 bg-transparent px-4 py-3 sm:py-4 text-white placeholder-slate-500 outline-none text-base sm:text-lg"
                 />
                 <a
                   href={username ? `/register?username=${username}` : '/register'}
-                  className="group/btn px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 font-bold text-white transition-all hover:from-blue-500 hover:to-purple-500 flex items-center gap-2"
+                  className="group/btn px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-purple-600 font-bold text-white transition-all hover:from-blue-500 hover:to-purple-500 flex items-center justify-center gap-2"
                 >
                   Claim
                   <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
@@ -125,32 +125,32 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Social Proof */}
-          <div className="flex items-center justify-center gap-8 mt-16 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+          {/* Social Proof - Better mobile layout */}
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mt-12 sm:mt-16 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
             {[
               { value: '10K+', label: 'Active Users' },
               { value: '500K+', label: 'Links Created' },
               { value: '99.9%', label: 'Uptime' }
             ].map((stat, i) => (
               <div key={i} className="text-center">
-                <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
-                <div className="text-sm text-slate-400">{stat.label}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-white mb-1">{stat.value}</div>
+                <div className="text-xs sm:text-sm text-slate-400">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Features Grid */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
-        <div className="text-center mb-20">
-          <h2 className="text-5xl font-black text-white mb-6">
+      {/* Features Grid - Better spacing */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
+        <div className="text-center mb-16 sm:mb-20">
+          <h2 className="text-4xl sm:text-5xl font-black text-white mb-4 sm:mb-6">
             Everything you need.
-            <span className="block text-slate-400 text-3xl mt-2">Nothing you don't.</span>
+            <span className="block text-slate-400 text-2xl sm:text-3xl mt-2">Nothing you don't.</span>
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {[
             {
               icon: <BarChart3 className="w-8 h-8" />,
@@ -191,38 +191,31 @@ export default function LandingPage() {
           ].map((feature, i) => (
             <div
               key={i}
-              className="group relative"
-              style={{
-                animation: 'fade-in-up 0.6s ease-out forwards',
-                animationDelay: `${i * 0.1}s`,
-                opacity: 0
-              }}
+              className="group relative opacity-100"
             >
-              <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl blur-xl" 
-                   style={{ background: `linear-gradient(135deg, var(--tw-gradient-stops))` }} />
-              <div className="relative h-full p-8 rounded-3xl bg-slate-900/50 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300 group-hover:transform group-hover:scale-105">
-                <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${feature.color} mb-6 shadow-lg`}>
+              <div className="relative h-full p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-slate-900/50 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300 hover:transform hover:scale-105">
+                <div className={`inline-flex p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br ${feature.color} mb-4 sm:mb-6 shadow-lg`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-4">{feature.title}</h3>
-                <p className="text-slate-400 leading-relaxed">{feature.description}</p>
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">{feature.title}</h3>
+                <p className="text-slate-400 leading-relaxed text-sm sm:text-base">{feature.description}</p>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Preview Section */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <h2 className="text-5xl font-black text-white mb-6">
+      {/* Preview Section - Better mobile layout */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="order-2 lg:order-1">
+            <h2 className="text-4xl sm:text-5xl font-black text-white mb-4 sm:mb-6">
               Designed to impress.
             </h2>
-            <p className="text-xl text-slate-400 mb-8 leading-relaxed">
+            <p className="text-lg sm:text-xl text-slate-400 mb-6 sm:mb-8 leading-relaxed">
               Beautiful themes that make your links stand out. Customize every detail to match your brand perfectly.
             </p>
-            <ul className="space-y-4">
+            <ul className="space-y-3 sm:space-y-4">
               {[
                 'Customizable themes and colors',
                 'Mobile-optimized design',
@@ -230,9 +223,9 @@ export default function LandingPage() {
                 'Custom icons and emojis',
                 'Drag & drop link ordering'
               ].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-slate-300">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-                    <Check className="w-4 h-4 text-white" />
+                <li key={i} className="flex items-center gap-3 text-slate-300 text-sm sm:text-base">
+                  <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                    <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                   </div>
                   <span>{item}</span>
                 </li>
@@ -240,12 +233,12 @@ export default function LandingPage() {
             </ul>
           </div>
 
-          <div className="relative">
+          <div className="relative order-1 lg:order-2">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl blur-3xl opacity-20" />
-            <div className="relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 border border-white/10 shadow-2xl">
+            <div className="relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl">
               <div className="flex flex-col items-center text-center mb-6">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 mb-4 shadow-lg" />
-                <h3 className="text-xl font-bold text-white mb-1">Your Name</h3>
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 mb-4 shadow-lg" />
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-1">Your Name</h3>
                 <p className="text-sm text-slate-400">@username</p>
                 <p className="text-sm text-slate-300 mt-3">Your bio and description goes here</p>
               </div>
@@ -253,9 +246,9 @@ export default function LandingPage() {
                 {['My Website', 'Social Media', 'Portfolio'].map((link, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between p-4 rounded-xl bg-slate-800/50 border border-white/10 hover:border-blue-500/50 transition-all cursor-pointer group"
+                    className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-slate-800/50 border border-white/10 hover:border-blue-500/50 transition-all cursor-pointer group"
                   >
-                    <span className="text-white font-medium">{link}</span>
+                    <span className="text-white font-medium text-sm sm:text-base">{link}</span>
                     <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-blue-400 transition-colors" />
                   </div>
                 ))}
@@ -265,20 +258,20 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* CTA Section */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
+      {/* CTA Section - Better mobile design */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-3xl blur-3xl opacity-20" />
-          <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-xl rounded-3xl p-16 border border-white/10 text-center">
-            <h2 className="text-5xl font-black text-white mb-6">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl sm:rounded-3xl blur-3xl opacity-20" />
+          <div className="relative bg-gradient-to-br from-slate-900/80 to-slate-800/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-8 sm:p-12 lg:p-16 border border-white/10 text-center">
+            <h2 className="text-4xl sm:text-5xl font-black text-white mb-4 sm:mb-6">
               Ready to get started?
             </h2>
-            <p className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-slate-400 mb-8 sm:mb-12 max-w-2xl mx-auto">
               Join thousands of creators who trust Vantora to power their online presence.
             </p>
             <a
               href="/register"
-              className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-lg font-bold text-white shadow-2xl shadow-blue-500/50 hover:shadow-blue-500/80 transition-all hover:scale-105"
+              className="inline-flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-base sm:text-lg font-bold text-white shadow-2xl shadow-blue-500/50 hover:shadow-blue-500/80 transition-all hover:scale-105"
             >
               Create Your Page
               <ArrowRight className="w-5 h-5" />

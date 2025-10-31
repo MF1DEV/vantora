@@ -10,8 +10,9 @@ import AvatarUpload from '@/components/dashboard/AvatarUpload'
 import DraggableLink from '@/components/dashboard/DraggableLink'
 import EmojiPicker from '@/components/dashboard/EmojiPicker'
 import LinkThumbnailUploader from '@/components/dashboard/LinkThumbnailUploader'
-import LinkBadgeSelector from '@/components/dashboard/LinkBadgeSelector'
+
 import LinkCategorySelector from '@/components/dashboard/LinkCategorySelector'
+import { SocialPlatformSelector, type SocialPlatform } from '@/components/dashboard/SocialMediaSelector'
 import EnhancedScheduler from '@/components/dashboard/EnhancedScheduler'
 import PasswordProtection from '@/components/dashboard/PasswordProtection'
 import { LoadingSpinner } from '@/components/ui/Loading'
@@ -32,6 +33,8 @@ interface Link {
   badge?: string | null
   badge_color?: string | null
   category?: string | null
+  link_type?: string
+  social_platform?: string | null
 }
 
 export default function DashboardPage() {
@@ -54,9 +57,9 @@ export default function DashboardPage() {
     isProtected: false,
     password: '',
     thumbnail: '',
-    badge: '',
-    badgeColor: '#ef4444',
-    category: ''
+    category: '',
+    linkType: 'regular' as 'regular' | 'social',
+    socialPlatform: null as string | null
   })
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const [copied, setCopied] = useState(false)
@@ -192,9 +195,9 @@ export default function DashboardPage() {
         is_protected: newLink.isProtected,
         password_hash: passwordHash,
         thumbnail_url: newLink.thumbnail || null,
-        badge: newLink.badge || null,
-        badge_color: newLink.badgeColor || null,
         category: newLink.category || null,
+        link_type: newLink.linkType,
+        social_platform: newLink.socialPlatform,
       })
 
     setAddingLink(false)
@@ -216,9 +219,9 @@ export default function DashboardPage() {
         isProtected: false,
         password: '',
         thumbnail: '',
-        badge: '',
-        badgeColor: '#ef4444',
-        category: ''
+        category: '',
+        linkType: 'regular',
+        socialPlatform: null
       })
       showToast('success', 'Link added successfully!')
       loadData()
@@ -536,33 +539,80 @@ export default function DashboardPage() {
                     <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
                     Basic Information
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    {/* Link Type Selector */}
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-2">
-                        Title <span className="text-red-400">*</span>
+                        Link Type
                       </label>
-                      <input
-                        type="text"
-                        value={newLink.title}
-                        onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
-                        className={`w-full px-4 py-3 bg-slate-900 border rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.title ? 'border-red-500' : 'border-slate-700'}`}
-                        placeholder="My Awesome Link"
-                      />
-                      {errors.title && <p className="text-red-400 text-sm mt-1.5">{errors.title}</p>}
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setNewLink({ ...newLink, linkType: 'regular', socialPlatform: null })}
+                          className={`flex-1 px-4 py-3 rounded-lg border-2 font-medium transition-all ${
+                            newLink.linkType === 'regular'
+                              ? 'border-blue-500 bg-blue-500/10 text-blue-400'
+                              : 'border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-600'
+                          }`}
+                        >
+                          Regular Link
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewLink({ ...newLink, linkType: 'social' })}
+                          className={`flex-1 px-4 py-3 rounded-lg border-2 font-medium transition-all ${
+                            newLink.linkType === 'social'
+                              ? 'border-purple-500 bg-purple-500/10 text-purple-400'
+                              : 'border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-600'
+                          }`}
+                        >
+                          Social Media
+                        </button>
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">
-                        URL <span className="text-red-400">*</span>
-                      </label>
-                      <input
-                        type="url"
-                        value={newLink.url}
-                        onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
-                        className={`w-full px-4 py-3 bg-slate-900 border rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.url ? 'border-red-500' : 'border-slate-700'}`}
-                        placeholder="https://example.com"
+                    {/* Social Platform Selector - Only show for social links */}
+                    {newLink.linkType === 'social' && (
+                      <SocialPlatformSelector
+                        selectedPlatform={newLink.socialPlatform as SocialPlatform | null}
+                        onSelect={(platform) => {
+                          setNewLink({ 
+                            ...newLink, 
+                            socialPlatform: platform,
+                            title: newLink.title || platform.charAt(0).toUpperCase() + platform.slice(1)
+                          })
+                        }}
                       />
-                      {errors.url && <p className="text-red-400 text-sm mt-1.5">{errors.url}</p>}
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                          Title <span className="text-red-400">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={newLink.title}
+                          onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
+                          className={`w-full px-4 py-3 bg-slate-900 border rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.title ? 'border-red-500' : 'border-slate-700'}`}
+                          placeholder="My Awesome Link"
+                        />
+                        {errors.title && <p className="text-red-400 text-sm mt-1.5">{errors.title}</p>}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                          URL <span className="text-red-400">*</span>
+                        </label>
+                        <input
+                          type="url"
+                          value={newLink.url}
+                          onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                          className={`w-full px-4 py-3 bg-slate-900 border rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.url ? 'border-red-500' : 'border-slate-700'}`}
+                          placeholder="https://example.com"
+                        />
+                        {errors.url && <p className="text-red-400 text-sm mt-1.5">{errors.url}</p>}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -573,21 +623,12 @@ export default function DashboardPage() {
                     <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
                     Customization
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-2">Icon (Emoji)</label>
                       <EmojiPicker
                         onSelect={(emoji) => setNewLink({ ...newLink, icon: emoji })}
                         currentIcon={newLink.icon}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">Badge</label>
-                      <LinkBadgeSelector
-                        badge={newLink.badge}
-                        badgeColor={newLink.badgeColor}
-                        onBadgeChange={(badge, color) => setNewLink({ ...newLink, badge, badgeColor: color })}
                       />
                     </div>
 

@@ -2,6 +2,7 @@
 
 import { ExternalLink, Lock } from 'lucide-react'
 import { getButtonStyleClass, getAccentColorClasses } from '@/lib/utils/theme'
+import { SocialIcon, type SocialPlatform } from '@/components/dashboard/SocialMediaSelector'
 
 interface LinkButtonProps {
   title: string
@@ -15,6 +16,8 @@ interface LinkButtonProps {
   buttonStyle?: string
   accentColor?: string
   customButtonColor?: string
+  linkType?: string
+  socialPlatform?: string | null
 }
 
 export function LinkButton({ 
@@ -28,7 +31,9 @@ export function LinkButton({
   badgeColor,
   buttonStyle = 'rounded',
   accentColor = 'blue',
-  customButtonColor
+  customButtonColor,
+  linkType,
+  socialPlatform
 }: LinkButtonProps) {
   const handleClick = (e: React.MouseEvent) => {
     if (isProtected) {
@@ -49,6 +54,13 @@ export function LinkButton({
   const buttonBgClass = customButtonColor 
     ? '' 
     : `${accentClasses.bg} ${accentClasses.hover}`
+
+  // Determine icon to display
+  const displayIcon = linkType === 'social' && socialPlatform ? (
+    <SocialIcon platform={socialPlatform as SocialPlatform} className="w-6 h-6" />
+  ) : icon ? (
+    <span className="text-xl md:text-2xl flex-shrink-0">{icon}</span>
+  ) : null
 
   // If has thumbnail, use card style
   if (thumbnail) {
@@ -85,9 +97,7 @@ export function LinkButton({
         {/* Content */}
         <div className="px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            {icon && (
-              <span className="text-xl md:text-2xl flex-shrink-0">{icon}</span>
-            )}
+            {displayIcon}
             <span className="font-medium text-white truncate">{title}</span>
           </div>
           <ExternalLink size={18} className="text-slate-400 group-hover:text-white transition-colors flex-shrink-0 ml-2" />
@@ -115,9 +125,7 @@ export function LinkButton({
         </span>
       )}
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        {icon && (
-          <span className="text-xl md:text-2xl flex-shrink-0">{icon}</span>
-        )}
+        {displayIcon}
         <span className="font-medium text-white truncate">{title}</span>
         {isProtected && (
           <Lock size={16} className="text-blue-400 flex-shrink-0" />

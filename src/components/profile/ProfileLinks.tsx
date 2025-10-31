@@ -193,6 +193,8 @@ export default function ProfileLinks({ username, buttonStyle, accentColor, custo
               buttonStyle={buttonStyle}
               accentColor={accentColor}
               customButtonColor={customButtonColor}
+              linkType={link.link_type}
+              socialPlatform={link.social_platform}
             />
           </div>
         ))}

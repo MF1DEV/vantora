@@ -6,7 +6,7 @@ interface PasswordProtectionProps {
   isProtected: boolean
   password: string
   onProtectionChange: (data: {
-    is_protected: boolean
+    isProtected: boolean
     password: string
   }) => void
 }
@@ -19,14 +19,14 @@ export default function PasswordProtection({
   const handleToggle = () => {
     const newProtected = !isProtected
     onProtectionChange({
-      is_protected: newProtected,
+      isProtected: newProtected,
       password: newProtected ? password : '',
     })
   }
 
   const handlePasswordChange = (value: string) => {
     onProtectionChange({
-      is_protected: isProtected,
+      isProtected: isProtected,
       password: value,
     })
   }
