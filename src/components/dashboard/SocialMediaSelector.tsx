@@ -65,6 +65,54 @@ const platformNames: Record<SocialPlatform, string> = {
   patreon: 'Patreon',
 }
 
+// URL builders for each platform
+export const platformUrlBuilders: Record<SocialPlatform, (username: string) => string> = {
+  twitter: (username) => `https://twitter.com/${username.replace('@', '')}`,
+  instagram: (username) => `https://instagram.com/${username.replace('@', '')}`,
+  facebook: (username) => `https://facebook.com/${username}`,
+  linkedin: (username) => `https://linkedin.com/in/${username}`,
+  github: (username) => `https://github.com/${username.replace('@', '')}`,
+  youtube: (username) => username.startsWith('@') ? `https://youtube.com/${username}` : `https://youtube.com/@${username}`,
+  tiktok: (username) => `https://tiktok.com/@${username.replace('@', '')}`,
+  twitch: (username) => `https://twitch.tv/${username.replace('@', '')}`,
+  discord: (username) => username, // Discord uses invite links
+  telegram: (username) => `https://t.me/${username.replace('@', '')}`,
+  whatsapp: (username) => `https://wa.me/${username}`,
+  snapchat: (username) => `https://snapchat.com/add/${username.replace('@', '')}`,
+  reddit: (username) => `https://reddit.com/user/${username.replace('u/', '')}`,
+  pinterest: (username) => `https://pinterest.com/${username.replace('@', '')}`,
+  medium: (username) => `https://medium.com/@${username.replace('@', '')}`,
+  behance: (username) => `https://behance.net/${username}`,
+  dribbble: (username) => `https://dribbble.com/${username}`,
+  spotify: (username) => username, // Spotify uses full URLs
+  soundcloud: (username) => `https://soundcloud.com/${username}`,
+  patreon: (username) => `https://patreon.com/${username}`,
+}
+
+// Placeholder text for username input
+export const platformPlaceholders: Record<SocialPlatform, string> = {
+  twitter: '@username or username',
+  instagram: '@username or username',
+  facebook: 'username',
+  linkedin: 'username',
+  github: 'username',
+  youtube: '@channel',
+  tiktok: '@username or username',
+  twitch: 'username',
+  discord: 'Discord invite URL',
+  telegram: 'username',
+  whatsapp: 'phone number',
+  snapchat: 'username',
+  reddit: 'username',
+  pinterest: 'username',
+  medium: '@username or username',
+  behance: 'username',
+  dribbble: 'username',
+  spotify: 'Spotify profile URL',
+  soundcloud: 'username',
+  patreon: 'username',
+}
+
 export function SocialIcon({ platform, className = 'w-6 h-6', color }: SocialIconProps) {
   const iconColor = color || platformColors[platform]
 

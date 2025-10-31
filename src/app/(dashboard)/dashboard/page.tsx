@@ -12,7 +12,7 @@ import EmojiPicker from '@/components/dashboard/EmojiPicker'
 import LinkThumbnailUploader from '@/components/dashboard/LinkThumbnailUploader'
 
 import LinkCategorySelector from '@/components/dashboard/LinkCategorySelector'
-import { SocialPlatformSelector, type SocialPlatform } from '@/components/dashboard/SocialMediaSelector'
+import { SocialPlatformSelector, type SocialPlatform, platformUrlBuilders, platformPlaceholders } from '@/components/dashboard/SocialMediaSelector'
 import EnhancedScheduler from '@/components/dashboard/EnhancedScheduler'
 import PasswordProtection from '@/components/dashboard/PasswordProtection'
 import { LoadingSpinner } from '@/components/ui/Loading'
@@ -145,12 +145,22 @@ export default function DashboardPage() {
     }
 
     if (!newLink.url.trim()) {
-      setErrors({ url: 'URL is required' })
+      setErrors({ url: newLink.linkType === 'social' ? 'Username is required' : 'URL is required' })
       return
     }
 
-    if (!validateUrl(newLink.url)) {
-      setErrors({ url: 'Please enter a valid URL (include https://)' })
+    // Build the full URL for social media links
+    let finalUrl = newLink.url.trim()
+    if (newLink.linkType === 'social' && newLink.socialPlatform) {
+      const platform = newLink.socialPlatform as SocialPlatform
+      // Only build URL if it's not already a full URL (for Discord/Spotify)
+      if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+        finalUrl = platformUrlBuilders[platform](finalUrl)
+      }
+    }
+
+    if (!validateUrl(finalUrl)) {
+      setErrors({ url: 'Please enter a valid URL or username' })
       return
     }
 
@@ -183,7 +193,7 @@ export default function DashboardPage() {
       .insert({
         user_id: user.id,
         title: newLink.title.trim(),
-        url: newLink.url.trim(),
+        url: finalUrl,
         icon: newLink.icon || null,
         position: links.length,
         is_scheduled: newLink.isScheduled,
@@ -602,14 +612,20 @@ export default function DashboardPage() {
 
                       <div>
                         <label className="block text-sm font-medium text-slate-300 mb-2">
-                          URL <span className="text-red-400">*</span>
+                          {newLink.linkType === 'social' && newLink.socialPlatform 
+                            ? (newLink.socialPlatform === 'discord' || newLink.socialPlatform === 'spotify' ? 'URL' : 'Username')
+                            : 'URL'} <span className="text-red-400">*</span>
                         </label>
                         <input
-                          type="url"
+                          type={newLink.linkType === 'social' && newLink.socialPlatform && !['discord', 'spotify'].includes(newLink.socialPlatform) ? 'text' : 'url'}
                           value={newLink.url}
                           onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
                           className={`w-full px-4 py-3 bg-slate-900 border rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.url ? 'border-red-500' : 'border-slate-700'}`}
-                          placeholder="https://example.com"
+                          placeholder={
+                            newLink.linkType === 'social' && newLink.socialPlatform
+                              ? platformPlaceholders[newLink.socialPlatform as SocialPlatform]
+                              : 'https://example.com'
+                          }
                         />
                         {errors.url && <p className="text-red-400 text-sm mt-1.5">{errors.url}</p>}
                       </div>
