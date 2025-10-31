@@ -1,6 +1,7 @@
 'use client'
 
 import { ExternalLink, Lock } from 'lucide-react'
+import { getButtonStyleClass, getAccentColorClasses } from '@/lib/utils/theme'
 
 interface LinkButtonProps {
   title: string
@@ -11,6 +12,9 @@ interface LinkButtonProps {
   thumbnail?: string
   badge?: string
   badgeColor?: string
+  buttonStyle?: string
+  accentColor?: string
+  customButtonColor?: string
 }
 
 export function LinkButton({ 
@@ -21,7 +25,10 @@ export function LinkButton({
   isProtected,
   thumbnail,
   badge,
-  badgeColor 
+  badgeColor,
+  buttonStyle = 'rounded',
+  accentColor = 'blue',
+  customButtonColor
 }: LinkButtonProps) {
   const handleClick = (e: React.MouseEvent) => {
     if (isProtected) {
@@ -29,6 +36,19 @@ export function LinkButton({
     }
     onClick?.()
   }
+
+  // Get theme classes
+  const roundingClass = getButtonStyleClass(buttonStyle)
+  const accentClasses = getAccentColorClasses(accentColor)
+  
+  // Use custom button color if provided (from advanced theme), otherwise use accent color classes
+  const buttonColorStyle = customButtonColor 
+    ? { backgroundColor: customButtonColor }
+    : undefined
+  
+  const buttonBgClass = customButtonColor 
+    ? '' 
+    : `${accentClasses.bg} ${accentClasses.hover}`
 
   // If has thumbnail, use card style
   if (thumbnail) {
@@ -38,7 +58,7 @@ export function LinkButton({
         target={isProtected ? undefined : "_blank"}
         rel={isProtected ? undefined : "noopener noreferrer"}
         onClick={handleClick}
-        className="group w-full overflow-hidden bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 hover:border-white/20 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg touch-manipulation"
+        className={`group w-full overflow-hidden bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 hover:border-white/20 ${roundingClass} transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg touch-manipulation`}
       >
         {/* Thumbnail */}
         <div className="relative h-40 overflow-hidden">
@@ -76,14 +96,15 @@ export function LinkButton({
     )
   }
 
-  // Default button style
+  // Default button style with theme support
   return (
     <a
       href={isProtected ? '#' : url}
       target={isProtected ? undefined : "_blank"}
       rel={isProtected ? undefined : "noopener noreferrer"}
       onClick={handleClick}
-      className="group w-full px-5 py-4 md:px-6 flex items-center justify-between bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 hover:border-white/20 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg touch-manipulation relative"
+      style={buttonColorStyle}
+      className={`group w-full px-5 py-4 md:px-6 flex items-center justify-between ${buttonBgClass} border border-white/10 hover:border-white/20 ${roundingClass} transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg touch-manipulation relative`}
     >
       {badge && (
         <span

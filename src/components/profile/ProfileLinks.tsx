@@ -5,7 +5,12 @@ import { createClient } from '@/lib/supabase/client'
 import { LinkButton } from './LinkButton'
 import PasswordPrompt from './PasswordPrompt'
 
-export default function ProfileLinks({ username }: { username: string }) {
+export default function ProfileLinks({ username, buttonStyle, accentColor, customButtonColor }: { 
+  username: string
+  buttonStyle?: string
+  accentColor?: string
+  customButtonColor?: string
+}) {
   const [links, setLinks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [passwordPrompt, setPasswordPrompt] = useState<{
@@ -179,6 +184,9 @@ export default function ProfileLinks({ username }: { username: string }) {
               thumbnail={link.thumbnail_url}
               badge={link.badge}
               badgeColor={link.badge_color}
+              buttonStyle={buttonStyle}
+              accentColor={accentColor}
+              customButtonColor={customButtonColor}
             />
           </div>
         ))}

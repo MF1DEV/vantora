@@ -195,6 +195,9 @@ export default async function PublicProfilePage({
 
           <ProfileLinks 
             username={profile.username}
+            buttonStyle={buttonStyle}
+            accentColor={accentColor}
+            customButtonColor={profile.custom_colors?.button}
           />
 
 <div className="mt-12 pt-6 border-t border-slate-700">

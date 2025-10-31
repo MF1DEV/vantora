@@ -144,6 +144,20 @@ export default function ThemesPage() {
     }
 
     try {
+      // Convert template gradient string to JSON structure for database
+      let backgroundGradient = null
+      if (template.background.gradient) {
+        // Extract colors from gradient string
+        const colorMatches = template.background.gradient.match(/#[0-9a-fA-F]{6}/g)
+        if (colorMatches && colorMatches.length >= 2) {
+          backgroundGradient = {
+            type: template.background.type === 'gradient' ? 'linear' : 'linear',
+            angle: template.background.angle || 135,
+            colors: colorMatches
+          }
+        }
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -151,7 +165,7 @@ export default function ThemesPage() {
           font_heading: template.fonts.heading,
           font_body: template.fonts.body,
           background_type: template.background.type,
-          background_gradient: template.background.gradient,
+          background_gradient: backgroundGradient,
           background_color: template.background.color,
           button_style: template.buttonStyle,
         })
