@@ -103,6 +103,22 @@ export default async function PublicProfilePage({
     const buttonStyle = profile.theme_button_style || 'rounded'
     const accentColor = profile.theme_accent_color || 'blue'
     
+    // Get theme-based accent colors for decorative elements
+    const accentColorMap: Record<string, { primary: string, secondary: string, tertiary: string }> = {
+      blue: { primary: '#3b82f6', secondary: '#8b5cf6', tertiary: '#ec4899' },
+      purple: { primary: '#8b5cf6', secondary: '#ec4899', tertiary: '#f59e0b' },
+      pink: { primary: '#ec4899', secondary: '#f97316', tertiary: '#8b5cf6' },
+      green: { primary: '#10b981', secondary: '#14b8a6', tertiary: '#3b82f6' },
+      orange: { primary: '#f97316', secondary: '#f59e0b', tertiary: '#ec4899' },
+      red: { primary: '#ef4444', secondary: '#f97316', tertiary: '#8b5cf6' },
+      cyan: { primary: '#06b6d4', secondary: '#3b82f6', tertiary: '#8b5cf6' },
+      teal: { primary: '#14b8a6', secondary: '#10b981', tertiary: '#06b6d4' },
+      violet: { primary: '#8b5cf6', secondary: '#a855f7', tertiary: '#ec4899' },
+      yellow: { primary: '#f59e0b', secondary: '#f97316', tertiary: '#ef4444' },
+    }
+    
+    const themeColors = accentColorMap[accentColor] || accentColorMap.blue
+    
     // Use custom background if available, otherwise fallback to theme
     const customBackground = profile.background_type || profile.theme_background
     const bgClass = customBackground && !profile.background_gradient && !profile.background_image_url 
@@ -149,21 +165,38 @@ export default async function PublicProfilePage({
       <AnalyticsTracker userId={profile.id} eventType="view" />
       
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Gradient Orbs - More prominent, fewer elements */}
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
+        {/* Gradient Orbs - Theme-aware colors */}
+        <div 
+          className="absolute -top-40 -right-40 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"
+          style={{ backgroundColor: themeColors.primary }}
+        />
+        <div 
+          className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"
+          style={{ backgroundColor: themeColors.secondary }}
+        />
+        <div 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"
+          style={{ backgroundColor: themeColors.tertiary }}
+        />
         
-        {/* Subtle grid pattern - only on desktop */}
-        <div className="hidden md:block absolute inset-0 opacity-30" style={{
-          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px)`,
-          backgroundSize: '60px 60px'
-        }} />
+        {/* Subtle grid pattern - theme-aware */}
+        <div 
+          className="hidden md:block absolute inset-0 opacity-30" 
+          style={{
+            backgroundImage: `linear-gradient(${themeColors.primary}08 1px, transparent 1px), linear-gradient(90deg, ${themeColors.primary}08 1px, transparent 1px)`,
+            backgroundSize: '60px 60px'
+          }} 
+        />
       </div>
 
       <div className="absolute top-6 left-6 md:top-8 md:left-8 z-10">
         <a href="/" className="flex items-center space-x-2 text-slate-400 hover:text-white transition">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />
+          <div 
+            className="w-8 h-8 rounded-lg"
+            style={{
+              background: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.secondary})`
+            }}
+          />
           <span className="text-sm font-semibold">vantora.id</span>
         </a>
       </div>
@@ -180,7 +213,12 @@ export default async function PublicProfilePage({
                 />
               </div>
             ) : (
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4 animate-fade-in animation-delay-100" />
+              <div 
+                className="w-24 h-24 rounded-full mb-4 animate-fade-in animation-delay-100"
+                style={{
+                  background: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.secondary})`
+                }}
+              />
             )}
             <h1 className="text-3xl font-bold text-white mb-2 animate-fade-in animation-delay-200">
               {profile.display_name || profile.username}
@@ -222,7 +260,11 @@ export default async function PublicProfilePage({
             
             <p className="text-slate-500 text-sm text-center">
               Create your own link page at{' '}
-              <a href="/" className="text-blue-400 hover:underline">
+              <a 
+                href="/" 
+                className="hover:underline"
+                style={{ color: themeColors.primary }}
+              >
                 vantora.id
               </a>
             </p>
