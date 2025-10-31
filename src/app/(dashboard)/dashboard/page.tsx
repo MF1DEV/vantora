@@ -10,6 +10,7 @@ import AdvancedThemeCustomizer from '@/components/dashboard/AdvancedThemeCustomi
 import CustomCSSEditor from '@/components/dashboard/CustomCSSEditor'
 import ThemeTemplatesGallery from '@/components/dashboard/ThemeTemplatesGallery'
 import ProfileLayoutSelector from '@/components/dashboard/ProfileLayoutSelector'
+import ProfileSectionOrderer from '@/components/dashboard/ProfileSectionOrderer'
 import SocialMediaLinks from '@/components/dashboard/SocialMediaLinks'
 import AvatarUpload from '@/components/dashboard/AvatarUpload'
 import DraggableLink from '@/components/dashboard/DraggableLink'
@@ -659,6 +660,29 @@ export default function DashboardPage() {
                       setErrors({ general: 'Failed to update layout' })
                     } else {
                       showSuccess('Profile layout updated successfully!')
+                      loadData()
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Profile Section Orderer */}
+              <div className="p-6 bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl">
+                <ProfileSectionOrderer
+                  initialOrder={profile?.section_order || ['bio', 'links', 'widgets', 'social']}
+                  onSave={async (order) => {
+                    const { data: { user } } = await supabase.auth.getUser()
+                    if (!user) return
+
+                    const { error } = await supabase
+                      .from('profiles')
+                      .update({ section_order: order })
+                      .eq('id', user.id)
+
+                    if (error) {
+                      setErrors({ general: 'Failed to update section order' })
+                    } else {
+                      showSuccess('Section order saved successfully!')
                       loadData()
                     }
                   }}
