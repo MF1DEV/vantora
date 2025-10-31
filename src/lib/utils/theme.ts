@@ -20,6 +20,11 @@ export const getButtonStyleClass = (style: string) => {
     'pill': 'rounded-full',
     'square': 'rounded-lg',
     'sharp': 'rounded-none',
+    'soft': 'rounded-2xl',
+    'neon': 'rounded-xl shadow-lg shadow-current',
+    'glass': 'rounded-xl backdrop-blur-sm bg-white/10',
+    'gradient': 'rounded-xl bg-gradient-to-r',
+    'outlined': 'rounded-xl border-2',
   }
   return styles[style] || styles['rounded']
 }
@@ -32,6 +37,10 @@ export const getAccentColorClasses = (color: string) => {
     'green': { bg: 'bg-green-600', hover: 'hover:bg-green-700', border: 'hover:border-green-500' },
     'orange': { bg: 'bg-orange-600', hover: 'hover:bg-orange-700', border: 'hover:border-orange-500' },
     'red': { bg: 'bg-red-600', hover: 'hover:bg-red-700', border: 'hover:border-red-500' },
+    'cyan': { bg: 'bg-cyan-600', hover: 'hover:bg-cyan-700', border: 'hover:border-cyan-500' },
+    'teal': { bg: 'bg-teal-600', hover: 'hover:bg-teal-700', border: 'hover:border-teal-500' },
+    'violet': { bg: 'bg-violet-600', hover: 'hover:bg-violet-700', border: 'hover:border-violet-500' },
+    'yellow': { bg: 'bg-yellow-600', hover: 'hover:bg-yellow-700', border: 'hover:border-yellow-500' },
   }
   return colors[color] || colors['blue']
 }

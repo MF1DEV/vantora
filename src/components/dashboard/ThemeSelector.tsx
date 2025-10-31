@@ -31,6 +31,8 @@ export default function ThemeSelector({ currentTheme, onThemeChange }: ThemeSele
     { id: 'pill', name: 'Pill', class: 'rounded-full' },
     { id: 'square', name: 'Square', class: 'rounded-lg' },
     { id: 'sharp', name: 'Sharp', class: 'rounded-none' },
+    { id: 'soft', name: 'Soft', class: 'rounded-2xl' },
+    { id: 'neon', name: 'Neon', class: 'rounded-xl shadow-lg shadow-blue-500/50' },
   ]
 
   const accentColors = [
@@ -40,6 +42,10 @@ export default function ThemeSelector({ currentTheme, onThemeChange }: ThemeSele
     { id: 'green', name: 'Green', class: 'bg-green-600' },
     { id: 'orange', name: 'Orange', class: 'bg-orange-600' },
     { id: 'red', name: 'Red', class: 'bg-red-600' },
+    { id: 'cyan', name: 'Cyan', class: 'bg-cyan-600' },
+    { id: 'teal', name: 'Teal', class: 'bg-teal-600' },
+    { id: 'violet', name: 'Violet', class: 'bg-violet-600' },
+    { id: 'yellow', name: 'Yellow', class: 'bg-yellow-600' },
   ]
 
   return (
@@ -72,7 +78,7 @@ export default function ThemeSelector({ currentTheme, onThemeChange }: ThemeSele
       {/* Button Style Selection */}
       <div>
         <h3 className="text-sm font-medium text-slate-300 mb-3">Button Style</h3>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {buttonStyles.map((style) => (
             <button
               key={style.id}
@@ -100,7 +106,7 @@ export default function ThemeSelector({ currentTheme, onThemeChange }: ThemeSele
       {/* Accent Color Selection */}
       <div>
         <h3 className="text-sm font-medium text-slate-300 mb-3">Accent Color</h3>
-        <div className="flex gap-3">
+        <div className="grid grid-cols-5 gap-3">
           {accentColors.map((color) => (
             <button
               key={color.id}
