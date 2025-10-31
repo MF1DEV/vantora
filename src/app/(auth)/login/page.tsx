@@ -1,21 +1,18 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
-import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { useCsrf } from '@/hooks/useCsrf'
 
 export default function LoginPage() {
   const router = useRouter()
   const { getCsrfHeaders } = useCsrf()
-  const captchaRef = useRef<HCaptcha>(null)
   
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -58,7 +55,6 @@ export default function LoginPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          hcaptchaToken: captchaToken,
         }),
       })
 
@@ -85,9 +81,6 @@ export default function LoginPage() {
         name: err.name 
       })
       setError(err.message || 'Failed to sign in. Please try again.')
-      // Reset captcha on error
-      captchaRef.current?.resetCaptcha()
-      setCaptchaToken(null)
     } finally {
       setLoading(false)
     }
@@ -186,20 +179,9 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* hCaptcha */}
-            <div className="flex justify-center">
-              <HCaptcha
-                ref={captchaRef}
-                sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || '10000000-ffff-ffff-ffff-000000000001'}
-                onVerify={(token) => setCaptchaToken(token)}
-                onExpire={() => setCaptchaToken(null)}
-                theme="dark"
-              />
-            </div>
-
             <button
               type="submit"
-              disabled={loading || !captchaToken}
+              disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-3 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {loading ? (
