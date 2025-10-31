@@ -30,9 +30,15 @@ export async function GET() {
     // Get links data
     const { data: links, error: linksError } = await supabase
       .from('links')
-      .select('id, title, user_id, is_active, click_count, created_at')
+      .select('id, title, user_id, is_active, created_at')
       .order('created_at', { ascending: false })
       .limit(10)
+
+    // Get clicks count from analytics
+    const { count: clicksCount, error: clicksError } = await supabase
+      .from('analytics')
+      .select('*', { count: 'exact', head: true })
+      .eq('event_type', 'click')
 
     return NextResponse.json({
       success: true,
@@ -50,6 +56,10 @@ export async function GET() {
           count: links?.length || 0,
           data: links || [],
           error: linksError
+        },
+        clicks: {
+          count: clicksCount || 0,
+          error: clicksError
         }
       }
     })

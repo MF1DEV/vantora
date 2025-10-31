@@ -54,19 +54,18 @@ export async function GET() {
       throw linksError
     }
 
-    // Get total clicks count
-    const { data: clicksData, error: clicksError } = await supabase
-      .from('links')
-      .select('click_count')
+    // Get total clicks count from analytics table instead of click_count column
+    const { count: totalClicks, error: clicksError } = await supabase
+      .from('analytics')
+      .select('*', { count: 'exact', head: true })
+      .eq('event_type', 'click')
 
-    console.log('Clicks data length:', clicksData?.length, 'Error:', clicksError)
+    console.log('Total clicks count:', totalClicks, 'Error:', clicksError)
     
     if (clicksError) {
       console.error('Error fetching clicks:', clicksError)
-      throw clicksError
+      // Don't throw - just use 0 if analytics table doesn't exist yet
     }
-
-    const totalClicks = clicksData?.reduce((sum: number, link: any) => sum + (link.click_count || 0), 0) || 0
 
     // Get active links (visible and not expired)
     const { count: activeLinksCount, error: activeLinksError } = await supabase
@@ -84,7 +83,7 @@ export async function GET() {
     const result = {
       users: usersCount || 0,
       links: linksCount || 0,
-      clicks: totalClicks,
+      clicks: totalClicks || 0,
       activeLinks: activeLinksCount || 0,
       updatedAt: new Date().toISOString()
     }
