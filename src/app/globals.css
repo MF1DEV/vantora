@@ -74,6 +74,16 @@
   .animate-spin-slow {
     animation: spin 3s linear infinite;
   }
+
+  .animate-bounce-subtle {
+    animation: bounce-subtle 0.5s ease-out;
+  }
+
+  @media (hover: hover) {
+    .animate-bounce-subtle:hover {
+      animation: bounce-subtle 0.5s ease-out;
+    }
+  }
 }
 
 @keyframes fadeIn {
@@ -161,6 +171,15 @@
   }
   100% {
     background-position: 200% 0;
+  }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
   }
 }
 

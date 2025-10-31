@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, Loader2, Check, Copy, ExternalLink, Download, Settings, Palette, BarChart3, Users } from 'lucide-react'
+import { Plus, Loader2, Check, Copy, ExternalLink, Download, Settings, Palette, BarChart3, Users, Sparkles, TrendingUp, Target, CheckCircle2, Circle } from 'lucide-react'
 import Link from 'next/link'
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -18,6 +18,8 @@ import EnhancedScheduler from '@/components/dashboard/EnhancedScheduler'
 import PasswordProtection from '@/components/dashboard/PasswordProtection'
 import { LoadingSpinner } from '@/components/ui/Loading'
 import { useToast } from '@/components/ui/Toast'
+import { Sparkline } from '@/components/dashboard/Sparkline'
+import { Confetti } from '@/components/ui/Confetti'
 
 interface Link {
   id: string
@@ -69,6 +71,14 @@ export default function DashboardPage() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const [copied, setCopied] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
+
+  // Mock sparkline data - in real app, fetch from analytics
+  const [sparklineData] = useState({
+    links: [3, 5, 4, 6, 5, 7, links.length || 8],
+    clicks: [45, 52, 48, 61, 58, 65, links.reduce((sum, l) => sum + (l.click_count || 0), 0) || 70],
+    views: [120, 135, 128, 145, 142, 158, 165]
+  })
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -252,6 +262,7 @@ export default function DashboardPage() {
         borderRadius: 'rounded',
         animation: 'none'
       })
+      setShowConfetti(true)
       showToast('success', 'Link added successfully!')
       loadData()
     }
@@ -350,6 +361,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <Confetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         
         {/* Header with Quick Actions */}
@@ -391,6 +403,84 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Welcome Banner with Profile Completion */}
+        {(() => {
+          const completionChecks = [
+            { completed: !!profile?.avatar_url, label: 'Add profile photo' },
+            { completed: !!profile?.display_name, label: 'Set display name' },
+            { completed: !!profile?.bio, label: 'Write a bio' },
+            { completed: links.length > 0, label: 'Add your first link' },
+            { completed: links.length >= 3, label: 'Add 3+ links' },
+            { completed: links.some(l => l.link_type === 'social'), label: 'Add social media' }
+          ];
+          const completedCount = completionChecks.filter(c => c.completed).length;
+          const progress = (completedCount / completionChecks.length) * 100;
+          
+          return progress < 100 ? (
+            <div className="mb-6 sm:mb-8 relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl blur-xl" />
+              <div className="relative bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 sm:p-8">
+                <div className="flex items-start gap-4 mb-6">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                    <Target className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                      Complete Your Profile
+                      <span className="text-sm font-normal text-slate-400">({completedCount}/{completionChecks.length})</span>
+                    </h2>
+                    <p className="text-slate-400 text-sm sm:text-base">
+                      {progress >= 80 
+                        ? '🎉 Almost there! Just a few more steps.' 
+                        : progress >= 50
+                        ? '👏 Great progress! Keep going.'
+                        : '👋 Welcome! Let\'s get your profile set up.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="mb-4">
+                  <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-out rounded-full relative overflow-hidden"
+                      style={{ width: `${progress}%` }}
+                    >
+                      <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">
+                    {Math.round(progress)}% complete
+                  </p>
+                </div>
+
+                {/* Checklist */}
+                <div className="grid sm:grid-cols-2 gap-2">
+                  {completionChecks.map((check, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
+                        check.completed
+                          ? 'bg-green-500/10 border border-green-500/20'
+                          : 'bg-slate-800/50 border border-slate-700/50 hover:border-blue-500/50'
+                      }`}
+                    >
+                      {check.completed ? (
+                        <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
+                      ) : (
+                        <Circle className="w-5 h-5 text-slate-600 flex-shrink-0" />
+                      )}
+                      <span className={`text-sm ${check.completed ? 'text-green-400' : 'text-slate-400'}`}>
+                        {check.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null;
+        })()}
+
         {/* Enhanced Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           {/* Total Links */}
@@ -406,7 +496,12 @@ export default function DashboardPage() {
                 </span>
               </div>
               <h3 className="text-[10px] sm:text-sm font-medium text-slate-400 mb-1">Total Links</h3>
-              <p className="text-xl sm:text-3xl font-bold text-white">{links.length}</p>
+              <div className="flex items-end justify-between">
+                <p className="text-xl sm:text-3xl font-bold text-white">{links.length}</p>
+                <div className="hidden sm:block">
+                  <Sparkline data={sparklineData.links} color="#60a5fa" height={30} />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -423,7 +518,12 @@ export default function DashboardPage() {
                 </Link>
               </div>
               <h3 className="text-[10px] sm:text-sm font-medium text-slate-400 mb-1">Total Clicks</h3>
-              <p className="text-xl sm:text-3xl font-bold text-white">{links.reduce((sum, link) => sum + (link.click_count || 0), 0).toLocaleString()}</p>
+              <div className="flex items-end justify-between">
+                <p className="text-xl sm:text-3xl font-bold text-white">{links.reduce((sum, link) => sum + (link.click_count || 0), 0).toLocaleString()}</p>
+                <div className="hidden sm:block">
+                  <Sparkline data={sparklineData.clicks} color="#c084fc" height={30} />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -437,7 +537,12 @@ export default function DashboardPage() {
                 </div>
               </div>
               <h3 className="text-[10px] sm:text-sm font-medium text-slate-400 mb-1">Profile Views</h3>
-              <p className="text-xl sm:text-3xl font-bold text-white">{(profile?.total_views || 0).toLocaleString()}</p>
+              <div className="flex items-end justify-between">
+                <p className="text-xl sm:text-3xl font-bold text-white">{(profile?.total_views || 0).toLocaleString()}</p>
+                <div className="hidden sm:block">
+                  <Sparkline data={sparklineData.views} color="#f472b6" height={30} />
+                </div>
+              </div>
             </div>
           </div>
 

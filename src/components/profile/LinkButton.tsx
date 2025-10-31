@@ -77,14 +77,14 @@ export function LinkButton({
     
     switch (buttonStyle as ButtonStyle) {
       case 'outline':
-        return `border-2 ${customButtonColor ? '' : 'border-current'} bg-transparent hover:bg-white/5 ${radius}`
+        return `border-2 ${customButtonColor ? '' : 'border-current'} bg-transparent hover:bg-white/5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${radius}`
       case 'soft-shadow':
-        return `shadow-lg hover:shadow-xl ${customButtonColor ? 'shadow-current/20' : 'shadow-blue-500/20'} bg-white/5 hover:bg-white/10 border border-white/10 ${radius}`
+        return `shadow-lg hover:shadow-xl ${customButtonColor ? 'shadow-current/20' : 'shadow-blue-500/20'} bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:-translate-y-0.5 ${radius}`
       case 'neon-glow':
-        return `shadow-lg shadow-current/50 hover:shadow-current/70 bg-white/5 hover:bg-white/10 border-2 border-current ${radius}`
+        return `shadow-lg shadow-current/50 hover:shadow-current/70 bg-white/5 hover:bg-white/10 border-2 border-current transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${radius}`
       case 'solid':
       default:
-        return `bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 ${radius}`
+        return `bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${radius}`
     }
   }
 
@@ -92,7 +92,7 @@ export function LinkButton({
   const animationClasses = {
     'none': '',
     'pulse': 'hover:animate-pulse',
-    'bounce': 'hover:animate-bounce',
+    'bounce': 'animate-bounce-subtle',
     'glow': 'hover:animate-pulse hover:shadow-lg hover:shadow-current/50',
   }
 
