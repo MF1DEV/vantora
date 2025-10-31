@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { BarChart3, Eye, MousePointerClick, TrendingUp } from 'lucide-react'
+import { BarChart3, Eye, MousePointerClick, TrendingUp, Download } from 'lucide-react'
 import { format, subDays } from 'date-fns'
 import { AnalyticsSkeleton } from '@/components/ui/Skeleton'
+import { DeviceBreakdown, GeographicBreakdown, HourlyClickPattern, LinkCTRStats } from '@/components/dashboard/AnalyticsComponents'
 
 interface AnalyticsData {
   totalViews: number
@@ -22,6 +23,29 @@ interface AnalyticsData {
     referrer: string
     count: number
   }>
+  deviceStats: Array<{
+    device_type: string
+    visits: number
+    clicks: number
+    percentage: number
+  }>
+  geoStats: Array<{
+    country: string
+    city: string
+    visits: number
+    clicks: number
+  }>
+  hourlyPattern: Array<{
+    hour_of_day: number
+    clicks: number
+    views: number
+  }>
+  linkCTR: Array<{
+    link_id: string
+    title: string
+    total_clicks: number
+    ctr_percentage: number
+  }>
 }
 
 export default function AnalyticsPage() {
@@ -32,6 +56,10 @@ export default function AnalyticsPage() {
     linkStats: [],
     dailyViews: [],
     topReferrers: [],
+    deviceStats: [],
+    geoStats: [],
+    hourlyPattern: [],
+    linkCTR: [],
   })
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState(7) // days
@@ -142,12 +170,34 @@ export default function AnalyticsPage() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5)
 
+    // Get device stats
+    const { data: deviceData } = await supabase
+      .rpc('get_device_stats', { user_uuid: user.id, days_back: timeRange })
+
+    // Get geographic stats
+    const { data: geoData } = await supabase
+      .rpc('get_geographic_stats', { user_uuid: user.id, days_back: timeRange })
+
+    // Get hourly pattern
+    const { data: hourlyData } = await supabase
+      .rpc('get_hourly_click_pattern', { user_uuid: user.id, days_back: timeRange })
+
+    // Get link CTR stats from view
+    const { data: ctrData } = await supabase
+      .from('link_ctr_stats')
+      .select('*')
+      .eq('user_id', user.id)
+
     setAnalytics({
       totalViews: viewCount || 0,
       totalClicks: clickCount || 0,
       linkStats: linkStats.sort((a, b) => b.clicks - a.clicks),
       dailyViews,
       topReferrers,
+      deviceStats: deviceData || [],
+      geoStats: (geoData || []).slice(0, 10),
+      hourlyPattern: hourlyData || [],
+      linkCTR: ctrData || [],
     })
 
     setLoading(false)
@@ -368,6 +418,25 @@ export default function AnalyticsPage() {
             <p className="text-slate-500 text-sm mt-2">Share your profile link to see where your visitors come from!</p>
           </div>
         )}
+      </div>
+
+      {/* New Advanced Analytics Section */}
+      <div className="mt-8 grid md:grid-cols-2 gap-6">
+        {/* Device Breakdown */}
+        <DeviceBreakdown data={analytics.deviceStats} />
+
+        {/* Link CTR Stats */}
+        <LinkCTRStats data={analytics.linkCTR} />
+      </div>
+
+      {/* Geographic Breakdown - Full Width */}
+      <div className="mt-6">
+        <GeographicBreakdown data={analytics.geoStats} />
+      </div>
+
+      {/* Hourly Pattern - Full Width */}
+      <div className="mt-6">
+        <HourlyClickPattern data={analytics.hourlyPattern} />
       </div>
     </div>
   )
