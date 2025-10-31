@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
-import { LayoutDashboard, BarChart3, Settings, LogOut, ExternalLink } from 'lucide-react'
+import { LayoutDashboard, BarChart3, Settings, LogOut, ExternalLink, Globe } from 'lucide-react'
 
 // Dynamic imports for sidebar components
 const ProfilePreview = dynamic(() => import('@/components/profile/ProfileView'), {
@@ -65,6 +65,7 @@ export default function DashboardLayout({
   const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { href: '/analytics', icon: BarChart3, label: 'Analytics' },
+    { href: '/domain', icon: Globe, label: 'Custom Domain' },
     { href: '/settings', icon: Settings, label: 'Settings' }
   ]
 

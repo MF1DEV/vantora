@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+import { Metadata } from 'next'
 import ProfileLinks from '@/components/profile/ProfileLinks'
 import SocialMediaLinks from '@/components/dashboard/SocialMediaLinks'
 import AudioPlayer from '@/components/profile/AudioPlayer'
@@ -22,6 +23,50 @@ interface Profile {
   theme_background: string | null
   theme_button_style: string | null
   theme_accent_color: string | null
+}
+
+// Generate dynamic metadata for SEO and social sharing
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ username: string }>
+}): Promise<Metadata> {
+  const { username } = await params
+  const supabase = await createClient()
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('username', username)
+    .single()
+
+  if (!profile) {
+    return {
+      title: 'Profile Not Found',
+    }
+  }
+
+  const title = profile.display_name || `@${profile.username}`
+  const description = profile.bio || `Check out ${title}'s links on Vantora`
+  const imageUrl = profile.avatar_url || 'https://vantora.vercel.app/og-image.png'
+
+  return {
+    title: `${title} | Vantora`,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [imageUrl],
+      type: 'profile',
+      url: `https://vantora.vercel.app/${username}`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [imageUrl],
+    },
+  }
 }
 
 export default async function PublicProfilePage({
@@ -150,51 +195,4 @@ export default async function PublicProfilePage({
       )}
     </div>
   )
-}
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ username: string }>
-}) {
-  const { username } = await params
-  const supabase = await createClient()
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('display_name, bio, username, avatar_url')
-    .eq('username', username)
-    .single()
-
-  if (!profile) {
-    return {
-      title: 'Profile Not Found | Vantora',
-      description: 'This profile does not exist on Vantora',
-    }
-  }
-
-  const title = `${profile.display_name || profile.username} | Vantora`
-  const description = profile.bio || `Check out ${profile.display_name || profile.username}'s links on Vantora`
-
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      siteName: 'Vantora',
-      images: profile.avatar_url ? [{
-        url: profile.avatar_url,
-        width: 800,
-        height: 800,
-      }] : [],
-      type: 'profile',
-    },
-    twitter: {
-      card: 'summary',
-      title,
-      description,
-      images: profile.avatar_url ? [profile.avatar_url] : [],
-    },
-  }
 }

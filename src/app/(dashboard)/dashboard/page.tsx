@@ -12,6 +12,8 @@ import DraggableLink from '@/components/dashboard/DraggableLink'
 import EmojiPicker from '@/components/dashboard/EmojiPicker'
 import QRCodeGenerator from '@/components/dashboard/QRCodeGenerator'
 import LinkScheduler from '@/components/dashboard/LinkScheduler'
+import EnhancedScheduler from '@/components/dashboard/EnhancedScheduler'
+import PasswordProtection from '@/components/dashboard/PasswordProtection'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
 
 interface Link {
@@ -36,7 +38,12 @@ export default function DashboardPage() {
     icon: '',
     isScheduled: false,
     scheduledStart: '',
-    scheduledEnd: ''
+    scheduledEnd: '',
+    timeStart: '',
+    timeEnd: '',
+    recurringDays: [] as number[],
+    isProtected: false,
+    password: ''
   })
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const [successMessage, setSuccessMessage] = useState('')
@@ -185,6 +192,27 @@ export default function DashboardPage() {
 
     setAddingLink(true)
 
+    // If password protected, hash the password
+    let passwordHash = null
+    if (newLink.isProtected && newLink.password) {
+      const response = await fetch('/api/links/hash-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: newLink.password }),
+      })
+      const data = await response.json()
+      passwordHash = data.hash
+    }
+
+    // Build recurring schedule JSON
+    let recurringSchedule = null
+    if (newLink.recurringDays.length > 0) {
+      recurringSchedule = {
+        type: 'days_of_week',
+        days: newLink.recurringDays
+      }
+    }
+
     const { error } = await supabase
       .from('links')
       .insert({
@@ -196,6 +224,11 @@ export default function DashboardPage() {
         is_scheduled: newLink.isScheduled,
         scheduled_start: newLink.isScheduled && newLink.scheduledStart ? new Date(newLink.scheduledStart).toISOString() : null,
         scheduled_end: newLink.isScheduled && newLink.scheduledEnd ? new Date(newLink.scheduledEnd).toISOString() : null,
+        time_start: newLink.timeStart || null,
+        time_end: newLink.timeEnd || null,
+        recurring_schedule: recurringSchedule,
+        is_protected: newLink.isProtected,
+        password_hash: passwordHash,
       })
 
     setAddingLink(false)
@@ -203,7 +236,19 @@ export default function DashboardPage() {
     if (error) {
       setErrors({ general: 'Failed to add link. Please try again.' })
     } else {
-      setNewLink({ title: '', url: '', icon: '', isScheduled: false, scheduledStart: '', scheduledEnd: '' })
+      setNewLink({ 
+        title: '', 
+        url: '', 
+        icon: '', 
+        isScheduled: false, 
+        scheduledStart: '', 
+        scheduledEnd: '',
+        timeStart: '',
+        timeEnd: '',
+        recurringDays: [],
+        isProtected: false,
+        password: ''
+      })
       showSuccess('Link added successfully!')
       loadData()
     }
@@ -633,16 +678,33 @@ export default function DashboardPage() {
                   <p className="text-xs text-red-400 mt-1">{errors.url}</p>
                 )}
               </div>
-              <LinkScheduler
+              <EnhancedScheduler
                 isScheduled={newLink.isScheduled}
                 scheduledStart={newLink.scheduledStart}
                 scheduledEnd={newLink.scheduledEnd}
-                onScheduleChange={(data) => 
-                  setNewLink({ 
-                    ...newLink, 
-                    isScheduled: data.is_scheduled, 
-                    scheduledStart: data.scheduled_start || '', 
-                    scheduledEnd: data.scheduled_end || '' 
+                timeStart={newLink.timeStart}
+                timeEnd={newLink.timeEnd}
+                recurringDays={newLink.recurringDays}
+                onScheduleChange={(data) =>
+                  setNewLink({
+                    ...newLink,
+                    isScheduled: data.is_scheduled,
+                    scheduledStart: data.scheduled_start || '',
+                    scheduledEnd: data.scheduled_end || '',
+                    timeStart: data.time_start || '',
+                    timeEnd: data.time_end || '',
+                    recurringDays: data.recurring_days || [],
+                  })
+                }
+              />
+              <PasswordProtection
+                isProtected={newLink.isProtected}
+                password={newLink.password}
+                onProtectionChange={(data) =>
+                  setNewLink({
+                    ...newLink,
+                    isProtected: data.is_protected,
+                    password: data.password,
                   })
                 }
               />
