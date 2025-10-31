@@ -3,6 +3,19 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
+    // Check if environment variables are set
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      console.error('NEXT_PUBLIC_SUPABASE_URL is not set')
+      return NextResponse.json({ error: 'Supabase URL not configured' }, { status: 500 })
+    }
+    
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('SUPABASE_SERVICE_ROLE_KEY is not set')
+      return NextResponse.json({ error: 'Service role key not configured' }, { status: 500 })
+    }
+
+    console.log('Creating Supabase client with service role...')
+    
     // Use service role key to bypass RLS and get all stats
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,6 +28,8 @@ export async function GET() {
       }
     )
 
+    console.log('Fetching profiles count...')
+    
     // Get total users count
     const { count: usersCount, error: usersError } = await supabase
       .from('profiles')
@@ -22,7 +37,10 @@ export async function GET() {
 
     console.log('Users count:', usersCount, 'Error:', usersError)
     
-    if (usersError) throw usersError
+    if (usersError) {
+      console.error('Error fetching users:', usersError)
+      throw usersError
+    }
 
     // Get total links count
     const { count: linksCount, error: linksError } = await supabase
@@ -31,16 +49,22 @@ export async function GET() {
 
     console.log('Links count:', linksCount, 'Error:', linksError)
     
-    if (linksError) throw linksError
+    if (linksError) {
+      console.error('Error fetching links:', linksError)
+      throw linksError
+    }
 
     // Get total clicks count
     const { data: clicksData, error: clicksError } = await supabase
       .from('links')
       .select('click_count')
 
-    console.log('Clicks data:', clicksData, 'Error:', clicksError)
+    console.log('Clicks data length:', clicksData?.length, 'Error:', clicksError)
     
-    if (clicksError) throw clicksError
+    if (clicksError) {
+      console.error('Error fetching clicks:', clicksError)
+      throw clicksError
+    }
 
     const totalClicks = clicksData?.reduce((sum: number, link: any) => sum + (link.click_count || 0), 0) || 0
 
@@ -52,7 +76,10 @@ export async function GET() {
 
     console.log('Active links count:', activeLinksCount, 'Error:', activeLinksError)
     
-    if (activeLinksError) throw activeLinksError
+    if (activeLinksError) {
+      console.error('Error fetching active links:', activeLinksError)
+      throw activeLinksError
+    }
 
     const result = {
       users: usersCount || 0,
