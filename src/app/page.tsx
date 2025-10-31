@@ -66,47 +66,6 @@ export default function LandingPage() {
     }
   }, [username]);
 
-  // Testimonials data
-  const testimonials = [
-    {
-      name: 'Sarah Chen',
-      role: 'Content Creator',
-      avatar: '👩‍💼',
-      quote: 'Vantora helped me grow my audience by 300%. The analytics are incredible!',
-      rating: 5
-    },
-    {
-      name: 'Marcus Rodriguez',
-      role: 'Digital Marketer',
-      avatar: '👨‍💻',
-      quote: 'Best link-in-bio tool I\'ve used. The customization options are endless.',
-      rating: 5
-    },
-    {
-      name: 'Emily Watson',
-      role: 'Influencer',
-      avatar: '👩‍🎨',
-      quote: 'My click-through rate doubled after switching to Vantora. Highly recommended!',
-      rating: 5
-    },
-    {
-      name: 'David Kim',
-      role: 'Entrepreneur',
-      avatar: '👨‍🚀',
-      quote: 'The scheduling feature saves me hours every week. Game changer!',
-      rating: 5
-    }
-  ];
-
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
   // Avatar stack for social proof
   const avatars = ['👩‍💼', '👨‍💻', '👩‍🎨', '👨‍🚀', '👩‍🔬', '👨‍🎤'];
 
@@ -405,63 +364,6 @@ export default function LandingPage() {
                     <span className="text-white font-medium text-sm sm:text-base">{link}</span>
                     <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-blue-400 transition-colors" />
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Testimonials Section */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-black text-white mb-4">
-            Loved by <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">creators</span> worldwide
-          </h2>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-            Don't just take our word for it. Here's what our community has to say.
-          </p>
-        </div>
-
-        {/* Testimonials Carousel */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-3xl blur-3xl" />
-          <div className="relative bg-slate-900/50 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-8 sm:p-12 border border-white/10">
-            <div className="max-w-3xl mx-auto">
-              {/* Current Testimonial */}
-              <div key={currentTestimonial} className="animate-fade-in">
-                <div className="flex items-center gap-2 mb-6 justify-center">
-                  {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                  ))}
-                </div>
-                <blockquote className="text-xl sm:text-2xl text-white font-medium text-center mb-8 leading-relaxed">
-                  "{testimonials[currentTestimonial].quote}"
-                </blockquote>
-                <div className="flex items-center justify-center gap-4">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl shadow-lg">
-                    {testimonials[currentTestimonial].avatar}
-                  </div>
-                  <div className="text-left">
-                    <p className="text-white font-semibold text-lg">{testimonials[currentTestimonial].name}</p>
-                    <p className="text-slate-400 text-sm">{testimonials[currentTestimonial].role}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Dots Navigation */}
-              <div className="flex items-center justify-center gap-2 mt-8">
-                {testimonials.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentTestimonial(i)}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      i === currentTestimonial 
-                        ? 'w-8 bg-gradient-to-r from-blue-500 to-purple-500' 
-                        : 'w-2 bg-slate-600 hover:bg-slate-500'
-                    }`}
-                    aria-label={`View testimonial ${i + 1}`}
-                  />
                 ))}
               </div>
             </div>
