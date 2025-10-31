@@ -27,6 +27,14 @@ interface Link {
   position: number
   is_active: boolean
   icon?: string
+  is_scheduled?: boolean
+  scheduled_start?: string | null
+  scheduled_end?: string | null
+  click_count?: number
+  thumbnail_url?: string | null
+  badge?: string | null
+  badge_color?: string | null
+  category?: string | null
 }
 
 export default function DashboardPage() {
@@ -132,6 +140,14 @@ export default function DashboardPage() {
     navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  // Get unique categories from existing links
+  const getExistingCategories = () => {
+    const categories = links
+      .map(link => link.category)
+      .filter((cat): cat is string => !!cat && cat.trim() !== '')
+    return Array.from(new Set(categories))
   }
 
   const exportData = async () => {
@@ -742,6 +758,7 @@ export default function DashboardPage() {
 
                 <LinkCategorySelector
                   category={newLink.category}
+                  existingCategories={getExistingCategories()}
                   onCategoryChange={(category) => setNewLink({ ...newLink, category })}
                 />
               </div>
@@ -813,6 +830,7 @@ export default function DashboardPage() {
                   <DraggableLink
                     key={link.id}
                     link={link}
+                    existingCategories={getExistingCategories()}
                     onToggle={() => toggleLink(link.id, link.is_active)}
                     onDelete={() => deleteLink(link.id)}
                     onEdit={(data) => editLink(link.id, data)}

@@ -26,6 +26,7 @@ interface DraggableLinkProps {
     badge_color?: string | null
     category?: string | null
   }
+  existingCategories?: string[]
   onToggle: () => void
   onDelete: () => void
   onEdit: (data: {
@@ -42,7 +43,7 @@ interface DraggableLinkProps {
   }) => void
 }
 
-export default function DraggableLink({ link, onToggle, onDelete, onEdit }: DraggableLinkProps) {
+export default function DraggableLink({ link, existingCategories = [], onToggle, onDelete, onEdit }: DraggableLinkProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editData, setEditData] = useState({
     title: link.title,
@@ -159,6 +160,7 @@ export default function DraggableLink({ link, onToggle, onDelete, onEdit }: Drag
             {/* Category */}
             <LinkCategorySelector
               category={editData.category}
+              existingCategories={existingCategories}
               onCategoryChange={(category) => setEditData({ ...editData, category })}
             />
           </div>
