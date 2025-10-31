@@ -573,9 +573,9 @@ export default function DashboardPage() {
                           key={link.id}
                           link={link}
                           existingCategories={getExistingCategories()}
-                          onToggle={(id: string, state: boolean) => toggleLink(id, state)}
-                          onDelete={(id: string) => deleteLink(id)}
-                          onEdit={(id: string, updates: any) => updateLink(id, updates)}
+                          onToggle={() => toggleLink(link.id, !link.is_active)}
+                          onDelete={() => deleteLink(link.id)}
+                          onEdit={(updates) => updateLink(link.id, updates)}
                         />
                       ))}
                     </div>
