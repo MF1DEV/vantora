@@ -20,23 +20,37 @@ export default function ThemesPage() {
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'quick' | 'advanced' | 'layout' | 'css'>('quick')
+  const [hasAdvancedFeatures, setHasAdvancedFeatures] = useState(false)
 
   useEffect(() => {
     loadProfile()
   }, [])
 
   const loadProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
 
-    setProfile(profileData)
-    setLoading(false)
+      if (error) {
+        console.error('Error loading profile:', error)
+        showToast('error', 'Failed to Load Profile', 'Could not load your profile data')
+      } else {
+        setProfile(profileData)
+        // Check if advanced customization columns exist
+        setHasAdvancedFeatures(profileData?.custom_colors !== undefined)
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err)
+      showToast('error', 'Error', 'An unexpected error occurred')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleThemeChange = async (theme: any) => {
@@ -132,6 +146,39 @@ export default function ThemesPage() {
           <p className="text-slate-400">Make your profile stand out with custom themes and styles</p>
         </div>
 
+        {/* Migration Warning Banner */}
+        {!hasAdvancedFeatures && (
+          <div className="mb-8 p-6 bg-amber-500/10 border-2 border-amber-500/50 rounded-xl">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-amber-500/20 rounded-lg">
+                <Sparkles className="w-6 h-6 text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-amber-400 mb-2">Advanced Features Not Available</h3>
+                <p className="text-slate-300 mb-4">
+                  To unlock Advanced Themes, Layout options, and Custom CSS, you need to run database migration 009.
+                </p>
+                <div className="bg-slate-900/50 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-slate-400 mb-2">Steps to enable:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-sm text-slate-300">
+                    <li>Go to your Supabase Dashboard → SQL Editor</li>
+                    <li>Copy the contents of <code className="px-2 py-1 bg-slate-800 rounded">supabase/migrations/009_advanced_customization.sql</code></li>
+                    <li>Paste and click "Run"</li>
+                    <li>Refresh this page</li>
+                  </ol>
+                </div>
+                <Link
+                  href="https://github.com/MF1DEV/vantora/blob/main/MIGRATION_GUIDE.md"
+                  target="_blank"
+                  className="inline-flex items-center gap-2 text-amber-400 hover:text-amber-300 text-sm font-medium"
+                >
+                  View Migration Guide →
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Preview Button */}
         <div className="mb-8">
           <Link
@@ -149,24 +196,31 @@ export default function ThemesPage() {
           <div className="border-b border-slate-700">
             <nav className="flex gap-1 -mb-px overflow-x-auto">
               {[
-                { id: 'quick', label: 'Quick Themes', icon: Palette },
-                { id: 'advanced', label: 'Advanced', icon: Sparkles },
-                { id: 'layout', label: 'Layout & Sections', icon: Layout },
-                { id: 'css', label: 'Custom CSS', icon: Code },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2 px-6 py-4 border-b-2 font-medium transition whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-400'
-                      : 'border-transparent text-slate-400 hover:text-white hover:border-slate-600'
-                  }`}
-                >
-                  <tab.icon className="w-5 h-5" />
-                  {tab.label}
-                </button>
-              ))}
+                { id: 'quick', label: 'Quick Themes', icon: Palette, requiresMigration: false },
+                { id: 'advanced', label: 'Advanced', icon: Sparkles, requiresMigration: true },
+                { id: 'layout', label: 'Layout & Sections', icon: Layout, requiresMigration: true },
+                { id: 'css', label: 'Custom CSS', icon: Code, requiresMigration: true },
+              ].map((tab) => {
+                const isDisabled = tab.requiresMigration && !hasAdvancedFeatures
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => !isDisabled && setActiveTab(tab.id as any)}
+                    disabled={isDisabled}
+                    className={`flex items-center gap-2 px-6 py-4 border-b-2 font-medium transition whitespace-nowrap ${
+                      activeTab === tab.id
+                        ? 'border-blue-500 text-blue-400'
+                        : isDisabled
+                        ? 'border-transparent text-slate-600 cursor-not-allowed'
+                        : 'border-transparent text-slate-400 hover:text-white hover:border-slate-600'
+                    }`}
+                  >
+                    <tab.icon className="w-5 h-5" />
+                    {tab.label}
+                    {isDisabled && <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded">Locked</span>}
+                  </button>
+                )
+              })}
             </nav>
           </div>
         </div>

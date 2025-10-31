@@ -75,63 +75,64 @@ export default async function PublicProfilePage({
 }: {
   params: Promise<{ username: string }>
 }) {
-  const { username } = await params
-  const supabase = await createClient()
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('username', username)
-    .single()
-
-  if (!profile) {
-    notFound()
-  }
-
-  const { data: links } = await supabase
-    .from('links')
-    .select('*')
-    .eq('user_id', profile.id)
-    .eq('is_active', true)
-    .order('position', { ascending: true })
-  
-  // Fetch view count
-  const viewCount = profile.total_views || 0
-
-  const background = profile.theme_background || 'gradient-blue'
-  const buttonStyle = profile.theme_button_style || 'rounded'
-  const accentColor = profile.theme_accent_color || 'blue'
-  
-  // Use custom background if available, otherwise fallback to theme
-  const customBackground = profile.background_type || profile.theme_background
-  const bgClass = customBackground && !profile.background_gradient && !profile.background_image_url 
-    ? getBackgroundClass(background)
-    : ''
-
-  // Build custom background style - handle missing columns gracefully
-  let customBgStyle: React.CSSProperties = {}
   try {
-    if (profile.background_type === 'gradient' && profile.background_gradient) {
-      const gradient = typeof profile.background_gradient === 'string' 
-        ? JSON.parse(profile.background_gradient)
-        : profile.background_gradient
-      
-      if (gradient.type === 'linear') {
-        customBgStyle.background = `linear-gradient(${gradient.angle}deg, ${gradient.colors.join(', ')})`
-      } else {
-        customBgStyle.background = `radial-gradient(circle, ${gradient.colors.join(', ')})`
-      }
-    } else if (profile.background_type === 'solid' && profile.background_color) {
-      customBgStyle.backgroundColor = profile.background_color
-    } else if (profile.background_image_url) {
-      customBgStyle.backgroundImage = `url(${profile.background_image_url})`
-      customBgStyle.backgroundSize = 'cover'
-      customBgStyle.backgroundPosition = 'center'
+    const { username } = await params
+    const supabase = await createClient()
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('username', username)
+      .single()
+
+    if (!profile) {
+      notFound()
     }
-  } catch (error) {
-    console.warn('Error parsing custom background, using default:', error)
-    // Fall back to default gradient
-  }
+
+    const { data: links } = await supabase
+      .from('links')
+      .select('*')
+      .eq('user_id', profile.id)
+      .eq('is_active', true)
+      .order('position', { ascending: true })
+    
+    // Fetch view count
+    const viewCount = profile.total_views || 0
+
+    const background = profile.theme_background || 'gradient-blue'
+    const buttonStyle = profile.theme_button_style || 'rounded'
+    const accentColor = profile.theme_accent_color || 'blue'
+    
+    // Use custom background if available, otherwise fallback to theme
+    const customBackground = profile.background_type || profile.theme_background
+    const bgClass = customBackground && !profile.background_gradient && !profile.background_image_url 
+      ? getBackgroundClass(background)
+      : ''
+
+    // Build custom background style - handle missing columns gracefully
+    let customBgStyle: React.CSSProperties = {}
+    try {
+      if (profile.background_type === 'gradient' && profile.background_gradient) {
+        const gradient = typeof profile.background_gradient === 'string' 
+          ? JSON.parse(profile.background_gradient)
+          : profile.background_gradient
+        
+        if (gradient && gradient.type === 'linear' && Array.isArray(gradient.colors)) {
+          customBgStyle.background = `linear-gradient(${gradient.angle || 135}deg, ${gradient.colors.join(', ')})`
+        } else if (gradient && gradient.type === 'radial' && Array.isArray(gradient.colors)) {
+          customBgStyle.background = `radial-gradient(circle, ${gradient.colors.join(', ')})`
+        }
+      } else if (profile.background_type === 'solid' && profile.background_color) {
+        customBgStyle.backgroundColor = profile.background_color
+      } else if (profile.background_image_url) {
+        customBgStyle.backgroundImage = `url(${profile.background_image_url})`
+        customBgStyle.backgroundSize = 'cover'
+        customBgStyle.backgroundPosition = 'center'
+      }
+    } catch (error) {
+      console.warn('Error parsing custom background, using default:', error)
+      // Fall back to default gradient - do nothing, bgClass will be used
+    }
 
   return (
     <CustomThemeProvider profile={profile}>
@@ -231,4 +232,34 @@ export default async function PublicProfilePage({
       </div>
     </CustomThemeProvider>
   )
+  } catch (error) {
+    console.error('Error rendering profile page:', error)
+    // Return a user-friendly error page
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
+          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">Profile Error</h1>
+          <p className="text-slate-400 mb-6">
+            There was an error loading this profile. This may be due to missing database columns.
+          </p>
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-6">
+            <p className="text-sm text-amber-300">
+              If you're the owner, please run migration 009 in your Supabase database.
+            </p>
+          </div>
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition"
+          >
+            Go to Homepage
+          </a>
+        </div>
+      </div>
+    )
+  }
 }
