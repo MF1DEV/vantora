@@ -6,6 +6,9 @@ import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
 import { rateLimit, getRateLimitIdentifier, RateLimitConfig } from '@/lib/utils/rateLimit'
 import { requireCsrfToken } from '@/lib/utils/csrf'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   console.log('=== Login API Called ===')
   try {
