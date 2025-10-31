@@ -74,40 +74,27 @@ export default async function PublicProfilePage({
   return (
     <div className={`min-h-screen text-white relative overflow-hidden ${bgClass}`}>
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        {/* Gradient Orbs */}
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+        {/* Gradient Orbs - More prominent, fewer elements */}
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
         
-        {/* Grid */}
-        <div className="absolute inset-0" style={{
-          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px)`,
-          backgroundSize: '50px 50px'
+        {/* Subtle grid pattern - only on desktop */}
+        <div className="hidden md:block absolute inset-0 opacity-30" style={{
+          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
         }} />
-
-        {/* Animated stars */}
-        {[...Array(50)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-white rounded-full animate-twinkle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              opacity: Math.random() * 0.5 + 0.2
-            }}
-          />
-        ))}
       </div>
 
-      <div className="absolute top-8 left-8 z-10">
+      <div className="absolute top-6 left-6 md:top-8 md:left-8 z-10">
         <a href="/" className="flex items-center space-x-2 text-slate-400 hover:text-white transition">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />
           <span className="text-sm font-semibold">vantora.id</span>
         </a>
       </div>
 
-      <div className="relative z-10 max-w-2xl mx-auto px-6 py-20">
-        <div className="backdrop-blur-sm border border-white/10 rounded-3xl p-8 md:p-12 animate-scale-in">
+      <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
+        <div className="backdrop-blur-sm border border-white/10 rounded-3xl p-6 sm:p-8 md:p-12 animate-scale-in">
           <div className="flex flex-col items-center text-center mb-8">
             {profile.avatar_url ? (
               <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/10 mb-4 animate-fade-in animation-delay-100">

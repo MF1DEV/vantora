@@ -76,7 +76,13 @@ export default function BackgroundMusic({
           upsert: false,
         })
 
-      if (uploadError) throw uploadError
+      if (uploadError) {
+        console.error('Upload error:', uploadError)
+        if (uploadError.message.includes('not found')) {
+          throw new Error('Music storage not configured. Please run database migrations or contact support.')
+        }
+        throw uploadError
+      }
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage

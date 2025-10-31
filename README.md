@@ -16,7 +16,26 @@ npm install
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000)
+4. **Important:** Run database migrations in your Supabase dashboard:
+   - Go to your Supabase project dashboard
+   - Navigate to SQL Editor
+   - Run each migration file in `/supabase/migrations/` in order:
+     - `001_initial_schema.sql`
+     - `002_analytics_tables.sql`
+     - `003_file_storage.sql`
+     - `004_add_link_scheduling.sql`
+     - `005_add_background_music.sql`
+     - `006_music_storage.sql` (creates music storage bucket)
+
+5. Open [http://localhost:3000](http://localhost:3000)
+
+## Storage Buckets Setup
+
+The app requires two Supabase storage buckets:
+- **avatars** - For user profile pictures (created by migration 003)
+- **music** - For background music files (created by migration 006)
+
+If you get "bucket not found" errors, ensure you've run the migrations in your Supabase dashboard.
 
 ## Project Structure
 
