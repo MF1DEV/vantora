@@ -3,6 +3,7 @@
 import { ExternalLink, Lock } from 'lucide-react'
 import { getButtonStyleClass, getAccentColorClasses } from '@/lib/utils/theme'
 import { SocialIcon, SocialPlatform } from '@/components/dashboard/SocialMediaIcons'
+import { ButtonStyle, BorderRadius, Animation } from '@/types/link'
 
 interface LinkButtonProps {
   title: string
@@ -13,11 +14,14 @@ interface LinkButtonProps {
   thumbnail?: string
   badge?: string
   badgeColor?: string
-  buttonStyle?: string
+  buttonStyle?: string | ButtonStyle
   accentColor?: string
   customButtonColor?: string
+  borderRadius?: BorderRadius
+  animation?: Animation
   linkType?: string
   socialPlatform?: string | null
+  iconOnly?: boolean
 }
 
 export function LinkButton({ 
@@ -29,11 +33,14 @@ export function LinkButton({
   thumbnail,
   badge,
   badgeColor,
-  buttonStyle = 'rounded',
+  buttonStyle = 'solid',
   accentColor = 'blue',
   customButtonColor,
+  borderRadius = 'rounded',
+  animation = 'none',
   linkType,
-  socialPlatform
+  socialPlatform,
+  iconOnly = false
 }: LinkButtonProps) {
   const handleClick = (e: React.MouseEvent) => {
     if (isProtected) {
@@ -42,25 +49,64 @@ export function LinkButton({
     onClick?.()
   }
 
-  // Get theme classes
-  const roundingClass = getButtonStyleClass(buttonStyle)
-  const accentClasses = getAccentColorClasses(accentColor)
-  
-  // Use custom button color if provided (from advanced theme), otherwise use accent color classes
-  const buttonColorStyle = customButtonColor 
-    ? { backgroundColor: customButtonColor }
-    : undefined
-  
-  const buttonBgClass = customButtonColor 
-    ? '' 
-    : `${accentClasses.bg} ${accentClasses.hover}`
-
   // Determine icon to display
   const displayIcon = linkType === 'social' && socialPlatform ? (
     <SocialIcon platform={socialPlatform as SocialPlatform} className="w-6 h-6" />
   ) : icon ? (
     <span className="text-xl md:text-2xl flex-shrink-0">{icon}</span>
   ) : null
+
+  // If icon-only mode (for social media section)
+  if (iconOnly) {
+    return <>{displayIcon}</>
+  }
+
+  // Get border radius classes
+  const radiusClasses = {
+    'none': 'rounded-none',
+    'sm': 'rounded-sm',
+    'rounded': 'rounded-lg',
+    'lg': 'rounded-xl',
+    'full': 'rounded-full',
+  }
+
+  // Get button style classes
+  const getButtonClasses = () => {
+    const baseColor = customButtonColor || accentColor
+    const radius = radiusClasses[borderRadius as BorderRadius] || radiusClasses.rounded
+    
+    switch (buttonStyle as ButtonStyle) {
+      case 'outline':
+        return `border-2 ${customButtonColor ? '' : 'border-current'} bg-transparent hover:bg-white/5 ${radius}`
+      case 'soft-shadow':
+        return `shadow-lg hover:shadow-xl ${customButtonColor ? 'shadow-current/20' : 'shadow-blue-500/20'} bg-white/5 hover:bg-white/10 border border-white/10 ${radius}`
+      case 'neon-glow':
+        return `shadow-lg shadow-current/50 hover:shadow-current/70 bg-white/5 hover:bg-white/10 border-2 border-current ${radius}`
+      case 'solid':
+      default:
+        return `bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 ${radius}`
+    }
+  }
+
+  // Get animation classes
+  const animationClasses = {
+    'none': '',
+    'pulse': 'hover:animate-pulse',
+    'bounce': 'hover:animate-bounce',
+    'glow': 'hover:animate-pulse hover:shadow-lg hover:shadow-current/50',
+  }
+
+  // Get theme classes
+  const roundingClass = getButtonStyleClass(buttonStyle as string)
+  const accentClasses = getAccentColorClasses(accentColor)
+  
+  // Use custom button color if provided
+  const colorStyle = customButtonColor 
+    ? { color: customButtonColor, borderColor: customButtonColor }
+    : undefined
+
+  const buttonClasses = getButtonClasses()
+  const animClass = animationClasses[animation as Animation] || ''
 
   // If has thumbnail, use card style
   if (thumbnail) {
@@ -70,7 +116,8 @@ export function LinkButton({
         target={isProtected ? undefined : "_blank"}
         rel={isProtected ? undefined : "noopener noreferrer"}
         onClick={handleClick}
-        className={`group w-full overflow-hidden bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 hover:border-white/20 ${roundingClass} transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg touch-manipulation`}
+        className={`group w-full overflow-hidden ${buttonClasses} ${animClass} transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] touch-manipulation`}
+        style={colorStyle}
       >
         {/* Thumbnail */}
         <div className="relative h-40 overflow-hidden">
@@ -106,15 +153,15 @@ export function LinkButton({
     )
   }
 
-  // Default button style with theme support
+  // Default button style with customization
   return (
     <a
       href={isProtected ? '#' : url}
       target={isProtected ? undefined : "_blank"}
       rel={isProtected ? undefined : "noopener noreferrer"}
       onClick={handleClick}
-      style={buttonColorStyle}
-      className={`group w-full px-5 py-4 md:px-6 flex items-center justify-between ${buttonBgClass} border border-white/10 hover:border-white/20 ${roundingClass} transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg touch-manipulation relative`}
+      className={`group w-full px-5 py-4 md:px-6 flex items-center justify-between ${buttonClasses} ${animClass} transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] touch-manipulation relative`}
+      style={colorStyle}
     >
       {badge && (
         <span

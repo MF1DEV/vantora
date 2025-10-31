@@ -164,15 +164,45 @@ export default function ProfileLinks({ username, buttonStyle, accentColor, custo
     }
   }
 
+  // Separate social and regular links
+  const socialLinks = links.filter(link => link.link_type === 'social')
+  const regularLinks = links.filter(link => link.link_type !== 'social')
+
   return (
     <>
+      {/* Social Media Icons - Icon-only buttons */}
+      {socialLinks.length > 0 && (
+        <div className="flex justify-center gap-3 mb-6">
+          {socialLinks.map((link) => (
+            <button
+              key={link.id}
+              onClick={() => handleLinkClick(link)}
+              className="w-12 h-12 rounded-full bg-slate-800/50 border-2 border-slate-700 hover:border-slate-600 hover:scale-110 transition-all flex items-center justify-center group"
+              title={link.title}
+            >
+              <LinkButton
+                title=""
+                url={link.url}
+                icon={link.icon}
+                onClick={() => {}}
+                isProtected={link.is_protected}
+                linkType={link.link_type}
+                socialPlatform={link.social_platform}
+                iconOnly={true}
+              />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Regular Links - Full buttons */}
       <div className={
         layout === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 gap-3' :
         layout === 'masonry' ? 'columns-1 sm:columns-2 gap-3 space-y-3' :
         layout === 'card' ? 'space-y-4' :
         'space-y-3' // classic default
       }>
-        {links.map((link, index) => (
+        {regularLinks.map((link, index) => (
           <div
             key={link.id}
             className={`animate-fade-in-up opacity-0 ${layout === 'masonry' ? 'break-inside-avoid' : ''}`}
@@ -190,9 +220,11 @@ export default function ProfileLinks({ username, buttonStyle, accentColor, custo
               thumbnail={link.thumbnail_url}
               badge={link.badge}
               badgeColor={link.badge_color}
-              buttonStyle={buttonStyle}
-              accentColor={accentColor}
+              buttonStyle={link.button_style || buttonStyle}
+              accentColor={link.custom_color || accentColor}
               customButtonColor={customButtonColor}
+              borderRadius={link.border_radius}
+              animation={link.animation}
               linkType={link.link_type}
               socialPlatform={link.social_platform}
             />

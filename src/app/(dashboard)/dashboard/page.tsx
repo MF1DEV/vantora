@@ -10,6 +10,7 @@ import AvatarUpload from '@/components/dashboard/AvatarUpload'
 import DraggableLink from '@/components/dashboard/DraggableLink'
 import EmojiPicker from '@/components/dashboard/EmojiPicker'
 import LinkThumbnailUploader from '@/components/dashboard/LinkThumbnailUploader'
+import { AppearanceCustomizer } from '@/components/dashboard/AppearanceCustomizer'
 
 import LinkCategorySelector from '@/components/dashboard/LinkCategorySelector'
 import { SocialPlatformSelector, SocialPlatform, platformUrlBuilders, platformPlaceholders } from '@/components/dashboard/SocialMediaIcons'
@@ -59,7 +60,11 @@ export default function DashboardPage() {
     thumbnail: '',
     category: '',
     linkType: 'regular' as 'regular' | 'social',
-    socialPlatform: null as string | null
+    socialPlatform: null as string | null,
+    buttonStyle: 'solid' as 'solid' | 'outline' | 'soft-shadow' | 'neon-glow',
+    customColor: '',
+    borderRadius: 'rounded' as 'none' | 'sm' | 'rounded' | 'lg' | 'full',
+    animation: 'none' as 'none' | 'pulse' | 'bounce' | 'glow'
   })
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const [copied, setCopied] = useState(false)
@@ -213,6 +218,10 @@ export default function DashboardPage() {
         category: newLink.category || null,
         ...(newLink.linkType && { link_type: newLink.linkType }),
         ...(newLink.socialPlatform && { social_platform: newLink.socialPlatform }),
+        ...(newLink.buttonStyle && { button_style: newLink.buttonStyle }),
+        ...(newLink.customColor && { custom_color: newLink.customColor }),
+        ...(newLink.borderRadius && { border_radius: newLink.borderRadius }),
+        ...(newLink.animation && { animation: newLink.animation }),
       })
 
     setAddingLink(false)
@@ -237,7 +246,11 @@ export default function DashboardPage() {
         thumbnail: '',
         category: '',
         linkType: 'regular',
-        socialPlatform: null
+        socialPlatform: null,
+        buttonStyle: 'solid',
+        customColor: '',
+        borderRadius: 'rounded',
+        animation: 'none'
       })
       showToast('success', 'Link added successfully!')
       loadData()
@@ -664,6 +677,26 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Appearance Customization - Only for regular links */}
+                {newLink.linkType === 'regular' && (
+                  <div className="pt-4 border-t border-slate-700">
+                    <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+                      Button Appearance
+                    </h3>
+                    <AppearanceCustomizer
+                      buttonStyle={newLink.buttonStyle}
+                      customColor={newLink.customColor}
+                      borderRadius={newLink.borderRadius}
+                      animation={newLink.animation}
+                      onButtonStyleChange={(style) => setNewLink({ ...newLink, buttonStyle: style })}
+                      onCustomColorChange={(color) => setNewLink({ ...newLink, customColor: color })}
+                      onBorderRadiusChange={(radius) => setNewLink({ ...newLink, borderRadius: radius })}
+                      onAnimationChange={(animation) => setNewLink({ ...newLink, animation: animation })}
+                    />
+                  </div>
+                )}
 
                 {/* Advanced Settings */}
                 <div className="pt-4 border-t border-slate-700">
