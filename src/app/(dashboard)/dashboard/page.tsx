@@ -211,8 +211,8 @@ export default function DashboardPage() {
         password_hash: passwordHash,
         thumbnail_url: newLink.thumbnail || null,
         category: newLink.category || null,
-        link_type: newLink.linkType,
-        social_platform: newLink.socialPlatform,
+        ...(newLink.linkType && { link_type: newLink.linkType }),
+        ...(newLink.socialPlatform && { social_platform: newLink.socialPlatform }),
       })
 
     setAddingLink(false)
@@ -556,7 +556,8 @@ export default function DashboardPage() {
                     Basic Information
                   </h3>
                   <div className="space-y-4">
-                    {/* Link Type Selector */}
+                    {/* Link Type Selector - Only show if migration 011 is applied */}
+                    {false && ( // TODO: Enable after running migration 011_social_media_links.sql
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-2">
                         Link Type
@@ -586,6 +587,7 @@ export default function DashboardPage() {
                         </button>
                       </div>
                     </div>
+                    )}
 
                     {/* Social Platform Selector - Only show for social links */}
                     {newLink.linkType === 'social' && (
@@ -618,20 +620,14 @@ export default function DashboardPage() {
 
                       <div>
                         <label className="block text-sm font-medium text-slate-300 mb-2">
-                          {newLink.linkType === 'social' && newLink.socialPlatform 
-                            ? (newLink.socialPlatform === 'discord' || newLink.socialPlatform === 'spotify' ? 'URL' : 'Username')
-                            : 'URL'} <span className="text-red-400">*</span>
+                          URL <span className="text-red-400">*</span>
                         </label>
                         <input
-                          type={newLink.linkType === 'social' && newLink.socialPlatform && !['discord', 'spotify'].includes(newLink.socialPlatform) ? 'text' : 'url'}
+                          type="url"
                           value={newLink.url}
                           onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
                           className={`w-full px-4 py-3 bg-slate-900 border rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.url ? 'border-red-500' : 'border-slate-700'}`}
-                          placeholder={
-                            newLink.linkType === 'social' && newLink.socialPlatform
-                              ? platformPlaceholders[newLink.socialPlatform as SocialPlatform]
-                              : 'https://example.com'
-                          }
+                          placeholder="example.com or https://example.com"
                         />
                         {errors.url && <p className="text-red-400 text-sm mt-1.5">{errors.url}</p>}
                       </div>
