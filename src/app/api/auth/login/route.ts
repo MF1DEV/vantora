@@ -8,6 +8,7 @@ import { requireCsrfToken } from '@/lib/utils/csrf'
 import { verifyHCaptcha } from '@/lib/utils/hcaptcha'
 
 export async function POST(request: NextRequest) {
+  console.log('=== Login API Called ===')
   try {
     const requestUrl = new URL(request.url)
     const supabase = await createClient()
@@ -15,7 +16,9 @@ export async function POST(request: NextRequest) {
     // Validate CSRF token
     try {
       await requireCsrfToken(request)
+      console.log('CSRF validation passed')
     } catch (error) {
+      console.error('CSRF validation failed:', error)
       return NextResponse.json(
         { error: 'Invalid CSRF token. Please refresh the page and try again.' },
         { status: 403 }
@@ -49,6 +52,7 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json()
     } catch (error) {
+      console.error('JSON parse error:', error)
       return NextResponse.json(
         { error: 'Invalid request body' },
         { status: 400 }

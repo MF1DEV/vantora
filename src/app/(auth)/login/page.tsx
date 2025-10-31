@@ -62,7 +62,13 @@ export default function LoginPage() {
         }),
       })
 
-      const data = await response.json()
+      let data;
+      try {
+        data = await response.json()
+      } catch (jsonError) {
+        console.error('Failed to parse response:', jsonError)
+        throw new Error('Invalid response from server')
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to sign in')
@@ -73,6 +79,11 @@ export default function LoginPage() {
       router.refresh()
     } catch (err: any) {
       console.error('Login error:', err)
+      console.error('Error details:', { 
+        message: err.message, 
+        stack: err.stack,
+        name: err.name 
+      })
       setError(err.message || 'Failed to sign in. Please try again.')
       // Reset captcha on error
       captchaRef.current?.resetCaptcha()
