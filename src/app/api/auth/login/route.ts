@@ -9,6 +9,18 @@ import { requireCsrfToken } from '@/lib/utils/csrf'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+// Handle OPTIONS requests for CORS
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, x-csrf-token',
+    },
+  })
+}
+
 export async function POST(request: NextRequest) {
   console.log('=== Login API Called ===')
   try {
