@@ -31,13 +31,41 @@ export default function AdvancedThemeCustomizer({ userId, initialData, onSave }:
     body: initialData?.font_body || 'Inter',
   })
 
+  // Parse background_gradient if it's a string from the database
+  const parseBackgroundGradient = (data: any) => {
+    if (!data) {
+      return {
+        type: 'linear',
+        angle: 135,
+        colors: ['#0f172a', '#1e293b'],
+      }
+    }
+    
+    if (typeof data === 'string') {
+      try {
+        const parsed = JSON.parse(data)
+        // Validate the parsed data has required fields
+        if (parsed && Array.isArray(parsed.colors) && parsed.colors.length > 0) {
+          return parsed
+        }
+      } catch (e) {
+        console.warn('Failed to parse background_gradient:', e)
+      }
+    } else if (data && Array.isArray(data.colors) && data.colors.length > 0) {
+      return data
+    }
+    
+    // Return default if parsing failed or invalid
+    return {
+      type: 'linear',
+      angle: 135,
+      colors: ['#0f172a', '#1e293b'],
+    }
+  }
+
   const [backgroundType, setBackgroundType] = useState(initialData?.background_type || 'gradient')
   const [backgroundColor, setBackgroundColor] = useState(initialData?.background_color || '#0f172a')
-  const [backgroundGradient, setBackgroundGradient] = useState(initialData?.background_gradient || {
-    type: 'linear',
-    angle: 135,
-    colors: ['#0f172a', '#1e293b'],
-  })
+  const [backgroundGradient, setBackgroundGradient] = useState(parseBackgroundGradient(initialData?.background_gradient))
   const [enableParticles, setEnableParticles] = useState(initialData?.enable_particles || false)
 
   const [buttonStyle, setButtonStyle] = useState(initialData?.button_style || 'rounded')
@@ -220,28 +248,28 @@ export default function AdvancedThemeCustomizer({ userId, initialData, onSave }:
 
               <ColorPicker
                 label="Gradient Start Color"
-                value={backgroundGradient.colors[0]}
+                value={backgroundGradient?.colors?.[0] || '#0f172a'}
                 onChange={(color) =>
                   setBackgroundGradient({
                     ...backgroundGradient,
-                    colors: [color, backgroundGradient.colors[1]],
+                    colors: [color, backgroundGradient?.colors?.[1] || '#1e293b'],
                   })
                 }
               />
               <ColorPicker
                 label="Gradient End Color"
-                value={backgroundGradient.colors[1]}
+                value={backgroundGradient?.colors?.[1] || '#1e293b'}
                 onChange={(color) =>
                   setBackgroundGradient({
                     ...backgroundGradient,
-                    colors: [backgroundGradient.colors[0], color],
+                    colors: [backgroundGradient?.colors?.[0] || '#0f172a', color],
                   })
                 }
               />
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Gradient Angle: {backgroundGradient.angle}°
+                  Gradient Angle: {backgroundGradient?.angle || 135}°
                 </label>
                 <input
                   type="range"

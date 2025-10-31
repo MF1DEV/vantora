@@ -54,70 +54,96 @@ export default function ThemesPage() {
   }
 
   const handleThemeChange = async (theme: any) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        theme_background: theme.background,
-        theme_button_style: theme.buttonStyle,
-        theme_accent_color: theme.accentColor,
-      })
-      .eq('id', profile.id)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          theme_background: theme.background,
+          theme_button_style: theme.buttonStyle,
+          theme_accent_color: theme.accentColor,
+        })
+        .eq('id', profile.id)
 
-    if (error) {
-      showToast('error', 'Failed to update theme')
-    } else {
-      showToast('success', 'Theme updated!')
-      loadProfile()
+      if (error) {
+        console.error('Theme update error:', error)
+        showToast('error', 'Failed to Update Theme', error.message)
+      } else {
+        showToast('success', 'Theme Updated', 'Your theme has been applied')
+        loadProfile()
+      }
+    } catch (err: any) {
+      console.error('Unexpected theme update error:', err)
+      showToast('error', 'Update Failed', err.message || 'Could not update theme')
+    }
+  }
     }
   }
 
   const handleLayoutChange = async (layout: string) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ profile_layout: layout })
-      .eq('id', profile.id)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ profile_layout: layout })
+        .eq('id', profile.id)
 
-    if (error) {
-      showToast('error', 'Failed to update layout')
-    } else {
-      showToast('success', 'Layout updated!')
-      loadProfile()
+      if (error) {
+        console.error('Layout update error:', error)
+        showToast('error', 'Failed to Update Layout', error.message)
+      } else {
+        showToast('success', 'Layout Updated', 'Your profile layout has been changed')
+        loadProfile()
+      }
+    } catch (err: any) {
+      console.error('Unexpected layout update error:', err)
+      showToast('error', 'Update Failed', err.message || 'Could not update layout')
     }
   }
 
   const handleCSSave = async (css: string) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ custom_css: css })
-      .eq('id', profile.id)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ custom_css: css })
+        .eq('id', profile.id)
 
-    if (error) {
-      showToast('error', 'Failed to save CSS')
-    } else {
-      showToast('success', 'Custom CSS saved!')
-      loadProfile()
+      if (error) {
+        console.error('CSS save error:', error)
+        showToast('error', 'Failed to Save CSS', error.message)
+      } else {
+        showToast('success', 'CSS Saved', 'Your custom CSS has been applied')
+        loadProfile()
+      }
+    } catch (err: any) {
+      console.error('Unexpected CSS save error:', err)
+      showToast('error', 'Save Failed', err.message || 'Could not save CSS')
     }
   }
 
   const handleApplyTemplate = async (template: any) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        custom_colors: template.colors,
-        font_heading: template.fonts.heading,
-        font_body: template.fonts.body,
-        background_type: template.background.type,
-        background_gradient: template.background.gradient,
-        background_color: template.background.color,
-        button_style: template.buttonStyle,
-      })
-      .eq('id', profile.id)
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          custom_colors: template.colors,
+          font_heading: template.fonts.heading,
+          font_body: template.fonts.body,
+          background_type: template.background.type,
+          background_gradient: template.background.gradient,
+          background_color: template.background.color,
+          button_style: template.buttonStyle,
+        })
+        .eq('id', profile.id)
 
-    if (error) {
-      showToast('error', 'Failed to apply template')
-    } else {
-      showToast('success', 'Template applied!')
-      loadProfile()
+      if (error) {
+        console.error('Template apply error:', error)
+        showToast('error', 'Failed to Apply Template', error.message)
+      } else {
+        showToast('success', 'Template Applied', 'Theme template has been applied to your profile')
+        loadProfile()
+      }
+    } catch (err: any) {
+      console.error('Unexpected template apply error:', err)
+      showToast('error', 'Apply Failed', err.message || 'Could not apply template')
     }
   }
 
