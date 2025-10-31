@@ -2,50 +2,85 @@
 export function applyCustomTheme(profile: any) {
   if (!profile) return {}
 
-  const customColors = profile.custom_colors || {}
-  const backgroundType = profile.background_type || 'gradient'
-  const backgroundColor = profile.background_color || '#0f172a'
-  const backgroundGradient = profile.background_gradient || {
-    type: 'linear',
-    angle: 135,
-    colors: ['#0f172a', '#1e293b'],
-  }
-
-  let backgroundStyle = {}
-
-  switch (backgroundType) {
-    case 'solid':
-      backgroundStyle = { backgroundColor }
-      break
-    case 'gradient':
-      backgroundStyle = {
-        background: `linear-gradient(${backgroundGradient.angle}deg, ${backgroundGradient.colors.join(', ')})`,
+  try {
+    const customColors = profile.custom_colors || {}
+    const backgroundType = profile.background_type || 'gradient'
+    const backgroundColor = profile.background_color || '#0f172a'
+    
+    // Parse background_gradient if it's a string
+    let backgroundGradient = profile.background_gradient
+    if (typeof backgroundGradient === 'string') {
+      try {
+        backgroundGradient = JSON.parse(backgroundGradient)
+      } catch (e) {
+        console.warn('Failed to parse background_gradient:', e)
+        backgroundGradient = null
       }
-      break
-    case 'image':
-      if (profile.background_image_url) {
-        backgroundStyle = {
-          backgroundImage: `url(${profile.background_image_url})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+    }
+    
+    // Default gradient
+    if (!backgroundGradient || !backgroundGradient.colors || !Array.isArray(backgroundGradient.colors)) {
+      backgroundGradient = {
+        type: 'linear',
+        angle: 135,
+        colors: ['#0f172a', '#1e293b'],
+      }
+    }
+
+    let backgroundStyle: any = {}
+
+    switch (backgroundType) {
+      case 'solid':
+        backgroundStyle = { backgroundColor }
+        break
+      case 'gradient':
+        if (backgroundGradient.type === 'linear') {
+          backgroundStyle = {
+            background: `linear-gradient(${backgroundGradient.angle || 135}deg, ${backgroundGradient.colors.join(', ')})`,
+          }
+        } else {
+          backgroundStyle = {
+            background: `radial-gradient(circle, ${backgroundGradient.colors.join(', ')})`,
+          }
         }
-      }
-      break
-    case 'video':
-      // Video backgrounds handled separately in component
-      break
-  }
+        break
+      case 'image':
+        if (profile.background_image_url) {
+          backgroundStyle = {
+            backgroundImage: `url(${profile.background_image_url})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }
+        }
+        break
+      case 'video':
+        // Video backgrounds handled separately in component
+        break
+    }
 
-  return {
-    ...backgroundStyle,
-    '--color-accent': customColors.accent || '#3b82f6',
-    '--color-button': customColors.button || '#3b82f6',
-    '--color-button-text': customColors.buttonText || '#ffffff',
-    '--color-text': customColors.text || '#ffffff',
-    '--color-text-secondary': customColors.textSecondary || '#94a3b8',
-    '--font-heading': profile.font_heading || 'Inter',
-    '--font-body': profile.font_body || 'Inter',
-  } as React.CSSProperties
+    return {
+      ...backgroundStyle,
+      '--color-accent': customColors.accent || '#3b82f6',
+      '--color-button': customColors.button || '#3b82f6',
+      '--color-button-text': customColors.buttonText || '#ffffff',
+      '--color-text': customColors.text || '#ffffff',
+      '--color-text-secondary': customColors.textSecondary || '#94a3b8',
+      '--font-heading': profile.font_heading || 'Inter',
+      '--font-body': profile.font_body || 'Inter',
+    } as React.CSSProperties
+  } catch (error) {
+    console.error('Error applying custom theme:', error)
+    // Return safe defaults
+    return {
+      '--color-accent': '#3b82f6',
+      '--color-button': '#3b82f6',
+      '--color-button-text': '#ffffff',
+      '--color-text': '#ffffff',
+      '--color-text-secondary': '#94a3b8',
+      '--font-heading': 'Inter',
+      '--font-body': 'Inter',
+    } as React.CSSProperties
+  }
 }
 
 // Get button style classes based on button_style setting

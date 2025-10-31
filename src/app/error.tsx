@@ -33,14 +33,17 @@ export default function Error({
           We encountered an unexpected error. Don't worry, our team has been notified and we're working on a fix.
         </p>
 
-        {/* Error Details (only in development) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-8 p-4 bg-slate-800/50 rounded-lg text-left animate-fade-in animation-delay-300">
-            <p className="text-sm text-red-400 font-mono break-all">
-              {error.message}
+        {/* Error Details */}
+        <div className="mb-8 p-4 bg-slate-800/50 rounded-lg text-left animate-fade-in animation-delay-300">
+          <p className="text-sm text-red-400 font-mono break-all">
+            {error.message}
+          </p>
+          {error.digest && (
+            <p className="text-xs text-slate-500 mt-2">
+              Error ID: {error.digest}
             </p>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in animation-delay-400">

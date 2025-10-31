@@ -186,7 +186,7 @@ export default async function PublicProfilePage({
             )}
             
             {/* Social Media Links */}
-            {profile.social_links && Object.keys(profile.social_links).length > 0 && (
+            {profile.social_links && typeof profile.social_links === 'object' && Object.keys(profile.social_links).length > 0 && (
               <div className="flex gap-3 justify-center mt-4 animate-fade-in animation-delay-500">
                 <SocialMediaLinks links={profile.social_links} readonly />
               </div>
