@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export const createClient = async () => {
   const cookieStore = await cookies()
@@ -23,6 +24,27 @@ export const createClient = async () => {
             // user sessions.
           }
         },
+      },
+    }
+  )
+}
+
+/**
+ * Create a Supabase client with service role key for admin operations
+ * WARNING: Only use this for server-side operations that require elevated privileges
+ */
+export const createServiceRoleClient = () => {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set')
+  }
+
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
       },
     }
   )

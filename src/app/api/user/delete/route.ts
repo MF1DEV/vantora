@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
 import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
@@ -81,8 +81,9 @@ export async function DELETE(request: NextRequest) {
       userAgent: getUserAgent(request),
     })
 
-    // 4. Delete auth user (this is the final step)
-    const { error: deleteUserError } = await supabase.auth.admin.deleteUser(
+    // 4. Delete auth user using service role client (requires admin privileges)
+    const serviceRoleClient = createServiceRoleClient()
+    const { error: deleteUserError } = await serviceRoleClient.auth.admin.deleteUser(
       user.id
     )
 
