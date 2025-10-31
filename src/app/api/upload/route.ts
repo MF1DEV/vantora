@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
 import { rateLimit, getRateLimitIdentifier, RateLimitConfig } from '@/lib/utils/rateLimit'
 import { getClientIp } from '@/lib/utils/audit'
+import { requireCsrfToken } from '@/lib/utils/csrf'
 
 // Allowed MIME types and max file size
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
@@ -10,6 +11,16 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
 export async function POST(request: NextRequest) {
   try {
+    // Validate CSRF token
+    try {
+      await requireCsrfToken(request)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid CSRF token' },
+        { status: 403 }
+      )
+    }
+
     const supabase = await createClient()
     
     // Check authentication

@@ -1,18 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import HCaptcha from '@hcaptcha/react-hcaptcha'
+import { useCsrf } from '@/hooks/useCsrf'
 
 export default function LoginPage() {
   const router = useRouter()
-  const supabase = createClient()
+  const { getCsrfHeaders } = useCsrf()
+  const captchaRef = useRef<HCaptcha>(null)
   
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -43,23 +46,37 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
+      // Call our API endpoint instead of direct Supabase auth
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...getCsrfHeaders(),
+      }
+
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          hcaptchaToken: captchaToken,
+        }),
       })
 
-      if (signInError) throw signInError
+      const data = await response.json()
 
-      if (data.user) {
-        router.push('/dashboard')
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to sign in')
       }
+
+      // Redirect on success
+      router.push('/dashboard')
+      router.refresh()
     } catch (err: any) {
       console.error('Login error:', err)
-      if (err.message.includes('Invalid login credentials')) {
-        setError('Invalid email or password')
-      } else {
-        setError(err.message || 'Failed to sign in. Please try again.')
-      }
+      setError(err.message || 'Failed to sign in. Please try again.')
+      // Reset captcha on error
+      captchaRef.current?.resetCaptcha()
+      setCaptchaToken(null)
     } finally {
       setLoading(false)
     }
@@ -158,9 +175,20 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* hCaptcha */}
+            <div className="flex justify-center">
+              <HCaptcha
+                ref={captchaRef}
+                sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || '10000000-ffff-ffff-ffff-000000000001'}
+                onVerify={(token) => setCaptchaToken(token)}
+                onExpire={() => setCaptchaToken(null)}
+                theme="dark"
+              />
+            </div>
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !captchaToken}
               className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-3 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {loading ? (

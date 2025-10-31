@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
 import { profileUpdateSchema, validateRequest } from '@/lib/utils/validation'
 import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
+import { requireCsrfToken } from '@/lib/utils/csrf'
 
 // Get user profile
 export async function GET(request: NextRequest) {
@@ -44,6 +45,16 @@ export async function GET(request: NextRequest) {
 // Update user profile
 export async function PUT(request: NextRequest) {
   try {
+    // Validate CSRF token
+    try {
+      await requireCsrfToken(request)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid CSRF token' },
+        { status: 403 }
+      )
+    }
+
     const supabase = await createClient()
     
     const { data: { user }, error: authError } = await supabase.auth.getUser()

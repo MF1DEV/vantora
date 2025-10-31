@@ -2,9 +2,20 @@ import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
 import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
+import { requireCsrfToken } from '@/lib/utils/csrf'
 
 export async function DELETE(request: NextRequest) {
   try {
+    // Validate CSRF token
+    try {
+      await requireCsrfToken(request)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid CSRF token' },
+        { status: 403 }
+      )
+    }
+
     const supabase = await createClient()
     
     // Check authentication

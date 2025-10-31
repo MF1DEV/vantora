@@ -4,11 +4,23 @@ import { type NextRequest } from 'next/server'
 import { loginSchema, validateRequest } from '@/lib/utils/validation'
 import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
 import { rateLimit, getRateLimitIdentifier, RateLimitConfig } from '@/lib/utils/rateLimit'
+import { requireCsrfToken } from '@/lib/utils/csrf'
+import { verifyHCaptcha } from '@/lib/utils/hcaptcha'
 
 export async function POST(request: NextRequest) {
   try {
     const requestUrl = new URL(request.url)
     const supabase = await createClient()
+
+    // Validate CSRF token
+    try {
+      await requireCsrfToken(request)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid CSRF token. Please refresh the page and try again.' },
+        { status: 403 }
+      )
+    }
 
     // Apply rate limiting
     const ip = getClientIp(request)
@@ -34,6 +46,18 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate request body
     const body = await request.json()
+    
+    // Verify hCaptcha if token is provided
+    if (body.hcaptchaToken) {
+      const isValidCaptcha = await verifyHCaptcha(body.hcaptchaToken)
+      if (!isValidCaptcha) {
+        return NextResponse.json(
+          { error: 'Invalid captcha verification. Please try again.' },
+          { status: 400 }
+        )
+      }
+    }
+    
     const validation = await validateRequest(loginSchema, body)
 
     if (!validation.success) {

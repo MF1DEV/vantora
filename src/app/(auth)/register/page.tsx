@@ -1,21 +1,26 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Loader2, Check, X } from 'lucide-react'
+import HCaptcha from '@hcaptcha/react-hcaptcha'
+import { useCsrf } from '@/hooks/useCsrf'
 import { createClient } from '@/lib/supabase/client'
 
 function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
+  const { getCsrfHeaders } = useCsrf()
+  const captchaRef = useRef<HCaptcha>(null)
   
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [checkingUsername, setCheckingUsername] = useState(false)
   const [error, setError] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -101,34 +106,46 @@ function RegisterForm() {
     
     if (!validateForm()) return
 
+    if (!captchaToken) {
+      setError('Please complete the captcha verification')
+      return
+    }
+
     setLoading(true)
 
     try {
-      // Sign up the user
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            username: formData.username.toLowerCase(),
-            display_name: formData.username,
-          },
-        },
+      // Call our API endpoint instead of direct Supabase auth
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...getCsrfHeaders(),
+      }
+
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          username: formData.username.toLowerCase(),
+          email: formData.email,
+          password: formData.password,
+          hcaptchaToken: captchaToken,
+        }),
       })
 
-      if (signUpError) throw signUpError
+      const data = await response.json()
 
-      if (data.user) {
-        // Success! Redirect to dashboard
-        router.push('/dashboard')
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create account')
       }
+
+      // Success! Redirect to dashboard
+      router.push('/dashboard')
+      router.refresh()
     } catch (err: any) {
       console.error('Registration error:', err)
-      if (err.message.includes('already registered')) {
-        setError('This email is already registered. Try logging in instead.')
-      } else {
-        setError(err.message || 'Failed to create account. Please try again.')
-      }
+      setError(err.message || 'Failed to create account. Please try again.')
+      // Reset captcha on error
+      captchaRef.current?.resetCaptcha()
+      setCaptchaToken(null)
     } finally {
       setLoading(false)
     }
@@ -340,9 +357,20 @@ function RegisterForm() {
               </label>
             </div>
 
+            {/* hCaptcha */}
+            <div className="flex justify-center">
+              <HCaptcha
+                ref={captchaRef}
+                sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || '10000000-ffff-ffff-ffff-000000000001'}
+                onVerify={(token) => setCaptchaToken(token)}
+                onExpire={() => setCaptchaToken(null)}
+                theme="dark"
+              />
+            </div>
+
             <button
               type="submit"
-              disabled={loading || checkingUsername || usernameAvailable === false}
+              disabled={loading || checkingUsername || usernameAvailable === false || !captchaToken}
               className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-3 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {loading ? (

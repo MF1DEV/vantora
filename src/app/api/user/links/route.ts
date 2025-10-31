@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
 import { linkSchema, validateRequest } from '@/lib/utils/validation'
+import { requireCsrfToken } from '@/lib/utils/csrf'
 import { z } from 'zod'
 
 // Get user's links
@@ -44,6 +45,16 @@ export async function GET(request: NextRequest) {
 // Create or update user's links
 export async function POST(request: NextRequest) {
   try {
+    // Validate CSRF token
+    try {
+      await requireCsrfToken(request)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid CSRF token' },
+        { status: 403 }
+      )
+    }
+
     const supabase = await createClient()
     
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -136,6 +147,16 @@ export async function POST(request: NextRequest) {
 // Delete a link
 export async function DELETE(request: NextRequest) {
   try {
+    // Validate CSRF token
+    try {
+      await requireCsrfToken(request)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid CSRF token' },
+        { status: 403 }
+      )
+    }
+
     const supabase = await createClient()
     const { searchParams } = new URL(request.url)
     const linkId = searchParams.get('id')
