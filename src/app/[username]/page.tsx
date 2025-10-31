@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import ProfileLinks from '@/components/profile/ProfileLinks'
 import SocialMediaLinks from '@/components/dashboard/SocialMediaLinks'
 import AudioPlayer from '@/components/profile/AudioPlayer'
+import AnalyticsTracker from '@/components/analytics/AnalyticsTracker'
 import { getBackgroundClass } from '@/lib/utils/theme'
 
 interface Link {
@@ -47,24 +48,9 @@ export default async function PublicProfilePage({
     .eq('user_id', profile.id)
     .eq('is_active', true)
     .order('position', { ascending: true })
-
-// Track profile view and increment counter
-  await supabase.from('analytics').insert({
-    user_id: profile.id,
-    event_type: 'view',
-  })
   
-  // Increment total views
-  await supabase.rpc('increment_profile_views', { profile_user_id: profile.id })
-  
-  // Fetch updated profile with view count
-  const { data: updatedProfile } = await supabase
-    .from('profiles')
-    .select('total_views')
-    .eq('id', profile.id)
-    .single()
-  
-  const viewCount = updatedProfile?.total_views || 0
+  // Fetch view count
+  const viewCount = profile.total_views || 0
 
   const background = profile.theme_background || 'gradient-blue'
   const buttonStyle = profile.theme_button_style || 'rounded'
@@ -73,6 +59,9 @@ export default async function PublicProfilePage({
 
   return (
     <div className={`min-h-screen text-white relative overflow-hidden ${bgClass}`}>
+      {/* Client-side analytics tracking */}
+      <AnalyticsTracker userId={profile.id} eventType="view" />
+      
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {/* Gradient Orbs - More prominent, fewer elements */}
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />

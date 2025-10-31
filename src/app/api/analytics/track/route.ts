@@ -76,6 +76,11 @@ export async function POST(request: Request) {
 
     if (error) throw error
 
+    // If it's a profile view, increment the view counter
+    if (event_type === 'view' && !link_id) {
+      await supabase.rpc('increment_profile_views', { profile_user_id: user_id })
+    }
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Analytics tracking error:', error)

@@ -211,6 +211,28 @@ export default function AnalyticsPage() {
 
   const maxViews = Math.max(...analytics.dailyViews.map(d => d.count), 1)
 
+  const handleExport = async () => {
+    try {
+      const rangeParam = timeRange === 7 ? '7d' : timeRange === 30 ? '30d' : '90d'
+      const response = await fetch(`/api/analytics/export?range=${rangeParam}`)
+      
+      if (!response.ok) throw new Error('Export failed')
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `vantora-analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Export error:', error)
+      alert('Failed to export analytics data')
+    }
+  }
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8 flex items-center justify-between">
@@ -218,15 +240,24 @@ export default function AnalyticsPage() {
           <h1 className="text-3xl font-bold text-white mb-2">Analytics</h1>
           <p className="text-slate-400">Track your profile performance</p>
         </div>
-        <select
-          value={timeRange}
-          onChange={(e) => setTimeRange(Number(e.target.value))}
-          className="backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500"
-        >
-          <option value={7}>Last 7 days</option>
-          <option value={30}>Last 30 days</option>
-          <option value={90}>Last 90 days</option>
-        </select>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExport}
+            className="backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2 text-white hover:bg-white/5 transition flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </button>
+          <select
+            value={timeRange}
+            onChange={(e) => setTimeRange(Number(e.target.value))}
+            className="backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500"
+          >
+            <option value={7}>Last 7 days</option>
+            <option value={30}>Last 30 days</option>
+            <option value={90}>Last 90 days</option>
+          </select>
+        </div>
       </div>
 
       {/* Stats Cards */}
