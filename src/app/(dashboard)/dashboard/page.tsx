@@ -157,6 +157,11 @@ export default function DashboardPage() {
       if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
         finalUrl = platformUrlBuilders[platform](finalUrl)
       }
+    } else {
+      // For regular links, add https:// if missing
+      if (finalUrl && !finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+        finalUrl = 'https://' + finalUrl
+      }
     }
 
     if (!validateUrl(finalUrl)) {
@@ -213,8 +218,9 @@ export default function DashboardPage() {
     setAddingLink(false)
 
     if (error) {
-      showToast('error', 'Failed to add link')
-      setErrors({ general: 'Failed to add link. Please try again.' })
+      console.error('Failed to add link:', error)
+      showToast('error', `Failed to add link: ${error.message}`)
+      setErrors({ general: error.message || 'Failed to add link. Please try again.' })
     } else {
       setNewLink({ 
         title: '', 
