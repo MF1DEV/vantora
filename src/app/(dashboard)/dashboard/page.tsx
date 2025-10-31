@@ -87,7 +87,27 @@ export default function DashboardPage() {
       .eq('user_id', user.id)
       .order('position', { ascending: true })
 
-    setLinks(linksData || [])
+    // Get click counts for each link
+    if (linksData) {
+      const linksWithClicks = await Promise.all(
+        linksData.map(async (link) => {
+          const { count } = await supabase
+            .from('analytics')
+            .select('*', { count: 'exact', head: true })
+            .eq('link_id', link.id)
+            .eq('event_type', 'click')
+          
+          return {
+            ...link,
+            click_count: count || 0
+          }
+        })
+      )
+      setLinks(linksWithClicks)
+    } else {
+      setLinks([])
+    }
+
     setLoading(false)
   }
 
@@ -200,6 +220,35 @@ export default function DashboardPage() {
       setErrors({ general: 'Failed to delete link' })
     } else {
       showSuccess('Link deleted successfully!')
+      loadData()
+    }
+  }
+
+  const editLink = async (id: string, data: {
+    title: string
+    url: string
+    icon?: string
+    is_scheduled: boolean
+    scheduled_start?: string | null
+    scheduled_end?: string | null
+  }) => {
+    const { error } = await supabase
+      .from('links')
+      .update({
+        title: data.title,
+        url: data.url,
+        icon: data.icon || null,
+        is_scheduled: data.is_scheduled,
+        scheduled_start: data.scheduled_start,
+        scheduled_end: data.scheduled_end,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+
+    if (error) {
+      setErrors({ general: 'Failed to update link' })
+    } else {
+      showSuccess('Link updated successfully!')
       loadData()
     }
   }
@@ -639,6 +688,7 @@ export default function DashboardPage() {
                     link={link}
                     onToggle={() => toggleLink(link.id, link.is_active)}
                     onDelete={() => deleteLink(link.id)}
+                    onEdit={(data) => editLink(link.id, data)}
                   />
                 ))}
               </div>
