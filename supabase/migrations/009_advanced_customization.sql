@@ -56,6 +56,13 @@ CREATE INDEX IF NOT EXISTS idx_widgets_position ON profile_widgets(position);
 -- Enable RLS on widgets
 ALTER TABLE profile_widgets ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist before recreating
+DROP POLICY IF EXISTS "Users can view their own widgets" ON profile_widgets;
+DROP POLICY IF EXISTS "Users can insert their own widgets" ON profile_widgets;
+DROP POLICY IF EXISTS "Users can update their own widgets" ON profile_widgets;
+DROP POLICY IF EXISTS "Users can delete their own widgets" ON profile_widgets;
+DROP POLICY IF EXISTS "Public can view active widgets" ON profile_widgets;
+
 CREATE POLICY "Users can view their own widgets"
   ON profile_widgets FOR SELECT
   USING (auth.uid() = user_id);
