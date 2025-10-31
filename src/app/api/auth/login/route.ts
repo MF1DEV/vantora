@@ -3,11 +3,34 @@ import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
 import { loginSchema, validateRequest } from '@/lib/utils/validation'
 import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
+import { rateLimit, getRateLimitIdentifier, RateLimitConfig } from '@/lib/utils/rateLimit'
 
 export async function POST(request: NextRequest) {
   try {
     const requestUrl = new URL(request.url)
     const supabase = await createClient()
+
+    // Apply rate limiting
+    const ip = getClientIp(request)
+    const identifier = getRateLimitIdentifier(ip)
+    const rateLimitResult = await rateLimit(identifier, RateLimitConfig.auth.login)
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { 
+          error: 'Too many login attempts. Please try again later.',
+          retryAfter: rateLimitResult.retryAfter,
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimitResult.retryAfter || 60),
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'X-RateLimit-Reset': String(rateLimitResult.reset),
+          },
+        }
+      )
+    }
 
     // Parse and validate request body
     const body = await request.json()

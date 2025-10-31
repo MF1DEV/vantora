@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
 import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
+import { rateLimit, getRateLimitIdentifier, RateLimitConfig } from '@/lib/utils/rateLimit'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,6 +15,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      )
+    }
+
+    // Apply rate limiting (stricter for data export)
+    const ip = getClientIp(request)
+    const identifier = getRateLimitIdentifier(ip, user.id)
+    const rateLimitResult = await rateLimit(identifier, RateLimitConfig.api.export)
+
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { 
+          error: 'Too many export requests. You can export your data 3 times per hour.',
+          retryAfter: rateLimitResult.retryAfter,
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimitResult.retryAfter || 3600),
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'X-RateLimit-Reset': String(rateLimitResult.reset),
+          },
+        }
       )
     }
 
