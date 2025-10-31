@@ -3,16 +3,48 @@
 import { useState, useEffect } from 'react';
 import { BarChart3, Users, MousePointerClick, ExternalLink, ArrowRight, Check, Sparkles, Zap, Shield, Star, TrendingUp, Lock } from 'lucide-react';
 
+interface Stats {
+  users: number;
+  links: number;
+  clicks: number;
+  activeLinks: number;
+  updatedAt: string;
+}
+
 export default function LandingPage() {
   const [username, setUsername] = useState('');
   const [scrollY, setScrollY] = useState(0);
   const [typedText, setTypedText] = useState('');
   const fullText = 'yourname';
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Fetch real statistics
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+    // Refresh stats every 30 seconds
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Typing animation effect
@@ -161,28 +193,29 @@ export default function LandingPage() {
             <span className="text-white font-semibold"> No coding required.</span>
           </p>
 
-          {/* Avatar Stack Social Proof */}
-          <div className="flex flex-col items-center gap-3 mb-10 animate-fade-in-up" style={{ animationDelay: '0.25s' }}>
-            <div className="flex -space-x-3">
-              {avatars.map((avatar, i) => (
-                <div 
-                  key={i} 
-                  className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 border-2 border-slate-900 flex items-center justify-center text-lg sm:text-xl hover:scale-110 hover:z-10 transition-transform duration-200 cursor-pointer shadow-lg"
-                >
-                  {avatar}
+              {/* Avatar Stack Social Proof */}
+              <div className="flex flex-col items-center gap-3 mb-10 animate-fade-in-up" style={{ animationDelay: '0.25s' }}>
+                <div className="flex -space-x-3">
+                  {avatars.map((avatar, i) => (
+                    <div 
+                      key={i} 
+                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 border-2 border-slate-900 flex items-center justify-center text-lg sm:text-xl hover:scale-110 hover:z-10 transition-transform duration-200 cursor-pointer shadow-lg"
+                    >
+                      {avatar}
+                    </div>
+                  ))}
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 border-2 border-slate-900 flex items-center justify-center text-xs font-bold text-white hover:scale-110 hover:z-10 transition-transform duration-200 cursor-pointer shadow-lg">
+                    {loading ? '...' : stats?.users || '0'}+
+                  </div>
                 </div>
-              ))}
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 border-2 border-slate-900 flex items-center justify-center text-xs font-bold text-white hover:scale-110 hover:z-10 transition-transform duration-200 cursor-pointer shadow-lg">
-                10K+
-              </div>
-            </div>
-            <p className="text-sm text-slate-400 flex items-center gap-1.5">
-              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-              <span className="font-semibold text-white">Join 10,000+</span> creators already using Vantora
-            </p>
-          </div>
-
-          {/* CTA - Improved mobile responsiveness */}
+                <p className="text-sm text-slate-400 flex items-center gap-1.5">
+                  <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                  <span className="font-semibold text-white">
+                    {loading ? 'Loading...' : `Join ${stats?.users || 0}+`}
+                  </span> 
+                  {!loading && stats?.users === 0 ? ' Be the first!' : ' creators using Vantora'}
+                </p>
+              </div>          {/* CTA - Improved mobile responsiveness */}
           <div className="max-w-lg mx-auto animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition duration-300" />
@@ -211,18 +244,53 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Social Proof - Better mobile layout */}
-          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 mt-12 sm:mt-16 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-            {[
-              { value: '10K+', label: 'Active Users' },
-              { value: '500K+', label: 'Links Created' },
-              { value: '99.9%', label: 'Uptime' }
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-white mb-1">{stat.value}</div>
-                <div className="text-xs sm:text-sm text-slate-400">{stat.label}</div>
+          {/* Social Proof - Real stats */}
+          <div className="flex flex-col items-center gap-6 mt-12 sm:mt-16 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8">
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-white mb-1 flex items-center justify-center gap-2">
+                  {loading ? (
+                    <span className="animate-pulse">...</span>
+                  ) : (
+                    <>
+                      {stats?.users || 0}
+                      {stats?.users === 0 && <span className="text-sm text-blue-400 ml-1">Be First!</span>}
+                    </>
+                  )}
+                </div>
+                <div className="text-xs sm:text-sm text-slate-400">Active Users</div>
               </div>
-            ))}
+              
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                  {loading ? (
+                    <span className="animate-pulse">...</span>
+                  ) : (
+                    (stats?.links || 0).toLocaleString()
+                  )}
+                </div>
+                <div className="text-xs sm:text-sm text-slate-400">Links Created</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                  {loading ? (
+                    <span className="animate-pulse">...</span>
+                  ) : (
+                    (stats?.clicks || 0).toLocaleString()
+                  )}
+                </div>
+                <div className="text-xs sm:text-sm text-slate-400">Total Clicks</div>
+              </div>
+            </div>
+            
+            {/* Live indicator */}
+            {!loading && stats && (
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span>Live statistics • Updates every 30s</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
