@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
+import { profileUpdateSchema, validateRequest } from '@/lib/utils/validation'
 
 // Get user profile
 export async function GET(request: NextRequest) {
@@ -31,6 +32,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ profile }, { status: 200 })
   } catch (error) {
+    console.error('Profile fetch error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -42,7 +44,6 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const updates = await request.json()
     
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
@@ -53,9 +54,34 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    // Parse and validate request body
+    const body = await request.json()
+    const validation = await validateRequest(profileUpdateSchema, body)
+
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
+
+    // Check if username is being changed and is already taken
+    if (validation.data.username) {
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', validation.data.username)
+        .neq('id', user.id)
+        .single()
+
+      if (existingProfile) {
+        return NextResponse.json(
+          { error: 'Username is already taken' },
+          { status: 400 }
+        )
+      }
+    }
+
     const { error } = await supabase
       .from('profiles')
-      .update(updates)
+      .update(validation.data)
       .eq('id', user.id)
 
     if (error) {
@@ -70,6 +96,7 @@ export async function PUT(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
+    console.error('Profile update error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
