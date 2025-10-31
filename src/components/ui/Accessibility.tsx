@@ -290,7 +290,7 @@ export function AccessibleTabs({ tabs, defaultTab = 0 }: AccessibleTabsProps) {
         {tabs.map((tab, index) => (
           <button
             key={index}
-            ref={(el) => (tabRefs.current[index] = el)}
+            ref={(el) => { tabRefs.current[index] = el }}
             role="tab"
             aria-selected={activeTab === index}
             aria-controls={`tabpanel-${index}`}
