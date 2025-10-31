@@ -136,6 +136,11 @@ export default async function PublicProfilePage({
 
   return (
     <CustomThemeProvider profile={profile}>
+      {/* Custom CSS injection */}
+      {profile.custom_css && (
+        <style dangerouslySetInnerHTML={{ __html: profile.custom_css }} />
+      )}
+      
       <div 
         className={`min-h-screen text-white relative overflow-hidden ${bgClass}`}
         style={customBgStyle}
@@ -198,6 +203,7 @@ export default async function PublicProfilePage({
             buttonStyle={buttonStyle}
             accentColor={accentColor}
             customButtonColor={profile.custom_colors?.button}
+            layout={profile.profile_layout || 'classic'}
           />
 
 <div className="mt-12 pt-6 border-t border-slate-700">

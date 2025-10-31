@@ -5,11 +5,12 @@ import { createClient } from '@/lib/supabase/client'
 import { LinkButton } from './LinkButton'
 import PasswordPrompt from './PasswordPrompt'
 
-export default function ProfileLinks({ username, buttonStyle, accentColor, customButtonColor }: { 
+export default function ProfileLinks({ username, buttonStyle, accentColor, customButtonColor, layout = 'classic' }: { 
   username: string
   buttonStyle?: string
   accentColor?: string
   customButtonColor?: string
+  layout?: string
 }) {
   const [links, setLinks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -165,11 +166,16 @@ export default function ProfileLinks({ username, buttonStyle, accentColor, custo
 
   return (
     <>
-      <div className="space-y-3">
+      <div className={
+        layout === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 gap-3' :
+        layout === 'masonry' ? 'columns-1 sm:columns-2 gap-3 space-y-3' :
+        layout === 'card' ? 'space-y-4' :
+        'space-y-3' // classic default
+      }>
         {links.map((link, index) => (
           <div
             key={link.id}
-            className="animate-fade-in-up opacity-0"
+            className={`animate-fade-in-up opacity-0 ${layout === 'masonry' ? 'break-inside-avoid' : ''}`}
             style={{
               animationDelay: `${index * 0.1}s`,
               animationFillMode: 'forwards'
