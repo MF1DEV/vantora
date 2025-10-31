@@ -2,7 +2,7 @@
 
 import { ExternalLink, Lock } from 'lucide-react'
 import { getButtonStyleClass, getAccentColorClasses } from '@/lib/utils/theme'
-import { SocialIcon, type SocialPlatform } from '@/components/dashboard/SocialMediaSelector'
+import { SocialIcon, SocialPlatform } from '@/components/dashboard/SocialMediaIcons'
 
 interface LinkButtonProps {
   title: string

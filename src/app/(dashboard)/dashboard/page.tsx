@@ -12,7 +12,7 @@ import EmojiPicker from '@/components/dashboard/EmojiPicker'
 import LinkThumbnailUploader from '@/components/dashboard/LinkThumbnailUploader'
 
 import LinkCategorySelector from '@/components/dashboard/LinkCategorySelector'
-import { SocialPlatformSelector, type SocialPlatform, platformUrlBuilders, platformPlaceholders } from '@/components/dashboard/SocialMediaSelector'
+import { SocialPlatformSelector, SocialPlatform, platformUrlBuilders, platformPlaceholders } from '@/components/dashboard/SocialMediaIcons'
 import EnhancedScheduler from '@/components/dashboard/EnhancedScheduler'
 import PasswordProtection from '@/components/dashboard/PasswordProtection'
 import { LoadingSpinner } from '@/components/ui/Loading'
@@ -556,8 +556,7 @@ export default function DashboardPage() {
                     Basic Information
                   </h3>
                   <div className="space-y-4">
-                    {/* Link Type Selector - Only show if migration 011 is applied */}
-                    {false && ( // TODO: Enable after running migration 011_social_media_links.sql
+                    {/* Link Type Selector */}
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-2">
                         Link Type
@@ -587,7 +586,6 @@ export default function DashboardPage() {
                         </button>
                       </div>
                     </div>
-                    )}
 
                     {/* Social Platform Selector - Only show for social links */}
                     {newLink.linkType === 'social' && (
@@ -620,14 +618,20 @@ export default function DashboardPage() {
 
                       <div>
                         <label className="block text-sm font-medium text-slate-300 mb-2">
-                          URL <span className="text-red-400">*</span>
+                          {newLink.linkType === 'social' && newLink.socialPlatform 
+                            ? (newLink.socialPlatform === 'discord' || newLink.socialPlatform === 'spotify' ? 'URL' : 'Username')
+                            : 'URL'} <span className="text-red-400">*</span>
                         </label>
                         <input
-                          type="url"
+                          type={newLink.linkType === 'social' && newLink.socialPlatform && !['discord', 'spotify'].includes(newLink.socialPlatform) ? 'text' : 'url'}
                           value={newLink.url}
                           onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
                           className={`w-full px-4 py-3 bg-slate-900 border rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.url ? 'border-red-500' : 'border-slate-700'}`}
-                          placeholder="example.com or https://example.com"
+                          placeholder={
+                            newLink.linkType === 'social' && newLink.socialPlatform
+                              ? platformPlaceholders[newLink.socialPlatform as SocialPlatform]
+                              : 'example.com or https://example.com'
+                          }
                         />
                         {errors.url && <p className="text-red-400 text-sm mt-1.5">{errors.url}</p>}
                       </div>
