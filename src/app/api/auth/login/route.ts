@@ -6,7 +6,6 @@ import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
 import { rateLimit, getRateLimitIdentifier, RateLimitConfig } from '@/lib/utils/rateLimit'
 import { requireCsrfToken } from '@/lib/utils/csrf'
 
-export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 // Handle OPTIONS requests for CORS
