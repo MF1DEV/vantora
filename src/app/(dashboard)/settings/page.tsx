@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Eye, EyeOff, Trash2, Mail, Calendar, Shield, Music, Bell, Lock } from 'lucide-react'
+import { Eye, EyeOff, Trash2, Mail, Calendar, Shield, Music, Bell, Lock, Download } from 'lucide-react'
 import BackgroundMusic from '@/components/dashboard/BackgroundMusic'
+import TwoFactorAuth from '@/components/dashboard/TwoFactorAuth'
 import { useToast } from '@/components/ui/Toast'
 
 export default function SettingsPage() {
@@ -91,11 +92,11 @@ export default function SettingsPage() {
 
     if (!confirmed) return
 
-    const doubleConfirm = window.prompt(
-      'Type "DELETE" to confirm account deletion:'
+    const password = window.prompt(
+      'Enter your password to confirm account deletion:'
     )
 
-    if (doubleConfirm !== 'DELETE') {
+    if (!password) {
       showToast('info', 'Cancelled', 'Account deletion cancelled')
       return
     }
@@ -103,21 +104,58 @@ export default function SettingsPage() {
     setLoading(true)
 
     try {
-      // Delete user data from profiles (cascade will handle links and analytics)
-      if (user) {
-        const { error: deleteError } = await supabase
-          .from('profiles')
-          .delete()
-          .eq('id', user.id)
+      const response = await fetch('/api/user/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      })
 
-        if (deleteError) throw deleteError
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete account')
       }
 
-      // Sign out
+      showToast('success', 'Account Deleted', 'Your account has been permanently deleted')
+      
+      // Sign out and redirect
       await supabase.auth.signOut()
-      router.push('/')
+      setTimeout(() => router.push('/'), 1000)
     } catch (err: any) {
       showToast('error', 'Delete Failed', err.message || 'Failed to delete account')
+      setLoading(false)
+    }
+  }
+
+  const handleDownloadData = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/user/export', {
+        method: 'GET',
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to export data')
+      }
+
+      // Download the file
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `vantora-data-${Date.now()}.json`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      showToast('success', 'Data Exported', 'Your data has been downloaded')
+    } catch (err: any) {
+      showToast('error', 'Export Failed', err.message || 'Failed to export data')
+    } finally {
       setLoading(false)
     }
   }
@@ -269,6 +307,11 @@ export default function SettingsPage() {
           >
             {loading ? 'Updating Password...' : 'Update Password'}
           </button>
+
+          {/* Two-Factor Authentication */}
+          <div className="pt-6 mt-6 border-t border-slate-700">
+            {user && <TwoFactorAuth userId={user.id} />}
+          </div>
         </div>
       </div>
 
@@ -433,26 +476,47 @@ export default function SettingsPage() {
           <div className="p-2 bg-red-500/10 rounded-lg">
             <Trash2 className="w-5 h-5 text-red-400" />
           </div>
-          <h2 className="text-xl font-semibold text-red-400">Danger Zone</h2>
+          <h2 className="text-xl font-semibold text-red-400">Data & Privacy</h2>
         </div>
         
-        <div className="p-4 bg-red-500/5 rounded-lg border border-red-500/20 mb-6">
+        {/* Download My Data */}
+        <div className="p-4 bg-blue-500/5 rounded-lg border border-blue-500/20 mb-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="text-white font-medium mb-1">Download Your Data</h3>
+              <p className="text-slate-400 text-sm">
+                Export all your data including profile information, links, and analytics in JSON format.
+              </p>
+            </div>
+            <button
+              onClick={handleDownloadData}
+              disabled={loading}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              <Download className="w-4 h-4" />
+              <span>Download Data</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Delete Account */}
+        <div className="p-4 bg-red-500/5 rounded-lg border border-red-500/20">
           <p className="text-slate-300 mb-2">
             <strong className="text-red-400">Warning:</strong> This action cannot be undone.
           </p>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-400 text-sm mb-4">
             Deleting your account will permanently remove your profile, all links, analytics data, and any uploaded media. This action is irreversible.
           </p>
-        </div>
 
-        <button
-          onClick={handleDeleteAccount}
-          disabled={loading}
-          className="flex items-center space-x-2 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Trash2 className="w-4 h-4" />
-          <span>{loading ? 'Deleting...' : 'Delete Account Permanently'}</span>
-        </button>
+          <button
+            onClick={handleDeleteAccount}
+            disabled={loading}
+            className="flex items-center space-x-2 px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-white font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>{loading ? 'Deleting...' : 'Delete Account Permanently'}</span>
+          </button>
+        </div>
       </div>
     </div>
   )

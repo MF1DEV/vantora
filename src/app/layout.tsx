@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import CookieConsent from '@/components/ui/CookieConsent'
 
 export const metadata: Metadata = {
   title: 'Vantora.id - Your Digital Identity',
@@ -13,7 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <CookieConsent />
+      </body>
     </html>
   )
 }
