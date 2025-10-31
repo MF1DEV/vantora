@@ -529,100 +529,124 @@ export default function DashboardPage() {
                 </div>
               </div>
               
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Title <span className="text-red-400">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newLink.title}
-                      onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
-                      className={`w-full px-4 py-2.5 bg-slate-900 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.title ? 'border-red-500' : 'border-slate-700'}`}
-                      placeholder="My Link"
-                    />
-                    {errors.title && <p className="text-red-400 text-sm mt-1">{errors.title}</p>}
-                  </div>
+              <div className="space-y-6">
+                {/* Basic Information */}
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
+                    Basic Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">
+                        Title <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newLink.title}
+                        onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
+                        className={`w-full px-4 py-3 bg-slate-900 border rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.title ? 'border-red-500' : 'border-slate-700'}`}
+                        placeholder="My Awesome Link"
+                      />
+                      {errors.title && <p className="text-red-400 text-sm mt-1.5">{errors.title}</p>}
+                    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      URL <span className="text-red-400">*</span>
-                    </label>
-                    <input
-                      type="url"
-                      value={newLink.url}
-                      onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
-                      className={`w-full px-4 py-2.5 bg-slate-900 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.url ? 'border-red-500' : 'border-slate-700'}`}
-                      placeholder="https://example.com"
-                    />
-                    {errors.url && <p className="text-red-400 text-sm mt-1">{errors.url}</p>}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Icon (Emoji)</label>
-                    <EmojiPicker
-                      onSelect={(emoji) => setNewLink({ ...newLink, icon: emoji })}
-                      currentIcon={newLink.icon}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Badge</label>
-                    <LinkBadgeSelector
-                      badge={newLink.badge}
-                      badgeColor={newLink.badgeColor}
-                      onBadgeChange={(badge, color) => setNewLink({ ...newLink, badge, badgeColor: color })}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">Category</label>
-                    <LinkCategorySelector
-                      category={newLink.category}
-                      existingCategories={getExistingCategories()}
-                      onCategoryChange={(category) => setNewLink({ ...newLink, category })}
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">
+                        URL <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="url"
+                        value={newLink.url}
+                        onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                        className={`w-full px-4 py-3 bg-slate-900 border rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.url ? 'border-red-500' : 'border-slate-700'}`}
+                        placeholder="https://example.com"
+                      />
+                      {errors.url && <p className="text-red-400 text-sm mt-1.5">{errors.url}</p>}
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <EnhancedScheduler
-                    isScheduled={newLink.isScheduled}
-                    scheduledStart={newLink.scheduledStart}
-                    scheduledEnd={newLink.scheduledEnd}
-                    timeStart={newLink.timeStart}
-                    timeEnd={newLink.timeEnd}
-                    recurringDays={newLink.recurringDays}
-                    onScheduleChange={(schedule) => setNewLink({ ...newLink, ...schedule })}
-                  />
+                {/* Customization */}
+                <div className="pt-4 border-t border-slate-700">
+                  <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+                    Customization
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">Icon (Emoji)</label>
+                      <EmojiPicker
+                        onSelect={(emoji) => setNewLink({ ...newLink, icon: emoji })}
+                        currentIcon={newLink.icon}
+                      />
+                    </div>
 
-                  <PasswordProtection
-                    isProtected={newLink.isProtected}
-                    password={newLink.password}
-                    onProtectionChange={(protection) => setNewLink({ ...newLink, ...protection })}
-                  />
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">Badge</label>
+                      <LinkBadgeSelector
+                        badge={newLink.badge}
+                        badgeColor={newLink.badgeColor}
+                        onBadgeChange={(badge, color) => setNewLink({ ...newLink, badge, badgeColor: color })}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">Category</label>
+                      <LinkCategorySelector
+                        category={newLink.category}
+                        existingCategories={getExistingCategories()}
+                        onCategoryChange={(category) => setNewLink({ ...newLink, category })}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <button
-                  onClick={addLink}
-                  disabled={addingLink}
-                  className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2"
-                >
-                  {addingLink ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Adding Link...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-5 h-5" />
-                      Add Link
-                    </>
-                  )}
-                </button>
+                {/* Advanced Settings */}
+                <div className="pt-4 border-t border-slate-700">
+                  <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-pink-400 rounded-full"></span>
+                    Advanced Settings
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <EnhancedScheduler
+                      isScheduled={newLink.isScheduled}
+                      scheduledStart={newLink.scheduledStart}
+                      scheduledEnd={newLink.scheduledEnd}
+                      timeStart={newLink.timeStart}
+                      timeEnd={newLink.timeEnd}
+                      recurringDays={newLink.recurringDays}
+                      onScheduleChange={(schedule) => setNewLink({ ...newLink, ...schedule })}
+                    />
+
+                    <PasswordProtection
+                      isProtected={newLink.isProtected}
+                      password={newLink.password}
+                      onProtectionChange={(protection) => setNewLink({ ...newLink, ...protection })}
+                    />
+                  </div>
+                </div>
+
+                {/* Add Button */}
+                <div className="pt-4">
+                  <button
+                    onClick={addLink}
+                    disabled={addingLink}
+                    className="w-full px-4 py-3.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40"
+                  >
+                    {addingLink ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Adding Link...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-5 h-5" />
+                        Add Link
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
 
