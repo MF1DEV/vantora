@@ -2,14 +2,19 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { BarChart3, Eye, MousePointerClick, TrendingUp, Download } from 'lucide-react'
+import { Eye, MousePointerClick, TrendingUp, Users, ArrowLeft } from 'lucide-react'
 import { format, subDays } from 'date-fns'
-import { AnalyticsSkeleton } from '@/components/ui/Skeleton'
-import { DeviceBreakdown, GeographicBreakdown, HourlyClickPattern, LinkCTRStats } from '@/components/dashboard/AnalyticsComponents'
+import Link from 'next/link'
+import { LoadingSpinner } from '@/components/ui/Loading'
+import { MetricCard, DeviceBreakdownChart, GeographicHeatmap } from '@/components/dashboard/AdvancedAnalytics'
+import { DateRangeSelector, AnalyticsExporter, ComparisonView } from '@/components/dashboard/AnalyticsExport'
+import AnalyticsChart from '@/components/dashboard/AnalyticsChart'
 
 interface AnalyticsData {
   totalViews: number
   totalClicks: number
+  uniqueVisitors: number
+  ctr: number
   linkStats: Array<{
     link_id: string
     title: string
@@ -19,32 +24,17 @@ interface AnalyticsData {
     date: string
     count: number
   }>
-  topReferrers: Array<{
-    referrer: string
-    count: number
-  }>
   deviceStats: Array<{
-    device_type: string
+    device: string
     visits: number
     clicks: number
     percentage: number
   }>
   geoStats: Array<{
     country: string
-    city: string
+    countryCode: string
     visits: number
     clicks: number
-  }>
-  hourlyPattern: Array<{
-    hour_of_day: number
-    clicks: number
-    views: number
-  }>
-  linkCTR: Array<{
-    link_id: string
-    title: string
-    total_clicks: number
-    ctr_percentage: number
   }>
 }
 
@@ -53,16 +43,15 @@ export default function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<AnalyticsData>({
     totalViews: 0,
     totalClicks: 0,
+    uniqueVisitors: 0,
+    ctr: 0,
     linkStats: [],
     dailyViews: [],
-    topReferrers: [],
     deviceStats: [],
     geoStats: [],
-    hourlyPattern: [],
-    linkCTR: [],
   })
   const [loading, setLoading] = useState(true)
-  const [timeRange, setTimeRange] = useState(7) // days
+  const [timeRange, setTimeRange] = useState(7)
 
   useEffect(() => {
     loadAnalytics()
@@ -90,6 +79,18 @@ export default function AnalyticsPage() {
       .eq('event_type', 'click')
       .gte('created_at', startDate.toISOString())
 
+    // Get unique visitors
+    const { data: uniqueData } = await supabase
+      .from('analytics')
+      .select('ip_address')
+      .eq('user_id', user.id)
+      .gte('created_at', startDate.toISOString())
+
+    const uniqueVisitors = new Set(uniqueData?.map(d => d.ip_address)).size
+
+    // Calculate CTR
+    const ctr = viewCount && viewCount > 0 ? ((clickCount || 0) / viewCount * 100).toFixed(1) : '0'
+
     // Get clicks per link
     const { data: links } = await supabase
       .from('links')
@@ -107,7 +108,7 @@ export default function AnalyticsPage() {
       return {
         link_id: link.id,
         title: link.title,
-        clicks: count || 0,
+        clicks: count || 0
       }
     }) || []
 
@@ -120,354 +121,216 @@ export default function AnalyticsPage() {
       .eq('user_id', user.id)
       .eq('event_type', 'view')
       .gte('created_at', startDate.toISOString())
-      .order('created_at', { ascending: true })
 
-    // Group by day
-    const dailyViewsMap = new Map<string, number>()
+    const dailyCounts: { [key: string]: number } = {}
     for (let i = 0; i < timeRange; i++) {
-      const date = format(subDays(new Date(), timeRange - i - 1), 'MMM dd')
-      dailyViewsMap.set(date, 0)
+      const date = format(subDays(new Date(), i), 'MMM d')
+      dailyCounts[date] = 0
     }
 
-    dailyData?.forEach((item) => {
-      const date = format(new Date(item.created_at), 'MMM dd')
-      dailyViewsMap.set(date, (dailyViewsMap.get(date) || 0) + 1)
-    })
-
-    const dailyViews = Array.from(dailyViewsMap.entries()).map(([date, count]) => ({
-      date,
-      count,
-    }))
-
-    // Get top referrers
-    const { data: referrerData } = await supabase
-      .from('analytics')
-      .select('referrer')
-      .eq('user_id', user.id)
-      .eq('event_type', 'view')
-      .gte('created_at', startDate.toISOString())
-      .not('referrer', 'is', null)
-      .not('referrer', 'eq', '')
-
-    const referrerMap = new Map<string, number>()
-    referrerData?.forEach((item) => {
-      const referrer = item.referrer
-      if (referrer && referrer !== 'direct' && referrer !== '') {
-        // Extract domain from URL
-        try {
-          const url = new URL(referrer)
-          const domain = url.hostname.replace('www.', '')
-          referrerMap.set(domain, (referrerMap.get(domain) || 0) + 1)
-        } catch {
-          // If not a valid URL, use as is
-          referrerMap.set(referrer, (referrerMap.get(referrer) || 0) + 1)
-        }
+    dailyData?.forEach(item => {
+      const date = format(new Date(item.created_at), 'MMM d')
+      if (dailyCounts[date] !== undefined) {
+        dailyCounts[date]++
       }
     })
 
-    const topReferrers = Array.from(referrerMap.entries())
-      .map(([referrer, count]) => ({ referrer, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5)
+    const dailyViews = Object.entries(dailyCounts)
+      .map(([date, count]) => ({ date, count }))
+      .reverse()
 
-    // Get device stats
+    // Get device breakdown
     const { data: deviceData } = await supabase
-      .rpc('get_device_stats', { user_uuid: user.id, days_back: timeRange })
-
-    // Get geographic stats
-    const { data: geoData } = await supabase
-      .rpc('get_geographic_stats', { user_uuid: user.id, days_back: timeRange })
-
-    // Get hourly pattern
-    const { data: hourlyData } = await supabase
-      .rpc('get_hourly_click_pattern', { user_uuid: user.id, days_back: timeRange })
-
-    // Get link CTR stats from view
-    const { data: ctrData } = await supabase
-      .from('link_ctr_stats')
-      .select('*')
+      .from('analytics')
+      .select('device_type')
       .eq('user_id', user.id)
+      .gte('created_at', startDate.toISOString())
+
+    const deviceCounts: { [key: string]: number } = {}
+    deviceData?.forEach(item => {
+      deviceCounts[item.device_type] = (deviceCounts[item.device_type] || 0) + 1
+    })
+
+    const total = Object.values(deviceCounts).reduce((a, b) => a + b, 0)
+    const deviceStats = Object.entries(deviceCounts).map(([device, visits]) => ({
+      device: device.charAt(0).toUpperCase() + device.slice(1),
+      visits,
+      clicks: 0,
+      percentage: total > 0 ? Math.round((visits / total) * 100) : 0
+    }))
+
+    // Get geographic data
+    const { data: geoData } = await supabase
+      .from('analytics')
+      .select('country')
+      .eq('user_id', user.id)
+      .gte('created_at', startDate.toISOString())
+
+    const countryCounts: { [key: string]: number } = {}
+    geoData?.forEach(item => {
+      if (item.country) {
+        countryCounts[item.country] = (countryCounts[item.country] || 0) + 1
+      }
+    })
+
+    const geoStats = Object.entries(countryCounts)
+      .map(([country, visits]) => ({
+        country,
+        countryCode: '🌍', // You can add a country code mapping here
+        visits,
+        clicks: 0
+      }))
+      .sort((a, b) => b.visits - a.visits)
+      .slice(0, 10)
 
     setAnalytics({
       totalViews: viewCount || 0,
       totalClicks: clickCount || 0,
+      uniqueVisitors,
+      ctr: parseFloat(ctr),
       linkStats: linkStats.sort((a, b) => b.clicks - a.clicks),
       dailyViews,
-      topReferrers,
-      deviceStats: deviceData || [],
-      geoStats: (geoData || []).slice(0, 10),
-      hourlyPattern: hourlyData || [],
-      linkCTR: ctrData || [],
+      deviceStats,
+      geoStats
     })
 
     setLoading(false)
   }
 
-  const maxClicks = Math.max(...analytics.linkStats.map(l => l.clicks), 1)
-
   if (loading) {
-    return <AnalyticsSkeleton />
-  }
-
-  const maxViews = Math.max(...analytics.dailyViews.map(d => d.count), 1)
-
-  const handleExport = async () => {
-    try {
-      const rangeParam = timeRange === 7 ? '7d' : timeRange === 30 ? '30d' : '90d'
-      const response = await fetch(`/api/analytics/export?range=${rangeParam}`)
-      
-      if (!response.ok) throw new Error('Export failed')
-      
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `vantora-analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-    } catch (error) {
-      console.error('Export error:', error)
-      alert('Failed to export analytics data')
-    }
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Header */}
+        <div className="mb-8">
+          <Link 
+            href="/dashboard" 
+            className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-4 transition"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Dashboard
+          </Link>
           <h1 className="text-3xl font-bold text-white mb-2">Analytics</h1>
-          <p className="text-slate-400">Track your profile performance</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleExport}
-            className="backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2 text-white hover:bg-white/5 transition flex items-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Export CSV
-          </button>
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(Number(e.target.value))}
-            className="backdrop-blur-sm border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500"
-          >
-            <option value={7}>Last 7 days</option>
-            <option value={30}>Last 30 days</option>
-            <option value={90}>Last 90 days</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center">
-              <Eye className="w-6 h-6 text-blue-400" />
-            </div>
-          </div>
-          <div className="text-3xl font-bold text-white mb-1">{analytics.totalViews}</div>
-          <div className="text-sm text-slate-400">Profile Views</div>
+          <p className="text-slate-400">Track your profile performance and audience insights</p>
         </div>
 
-        <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-purple-600/20 rounded-xl flex items-center justify-center">
-              <MousePointerClick className="w-6 h-6 text-purple-400" />
-            </div>
-          </div>
-          <div className="text-3xl font-bold text-white mb-1">{analytics.totalClicks}</div>
-          <div className="text-sm text-slate-400">Link Clicks</div>
-        </div>
-
-        <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-green-600/20 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-green-400" />
-            </div>
-          </div>
-          <div className="text-3xl font-bold text-white mb-1">
-            {analytics.totalViews > 0 
-              ? ((analytics.totalClicks / analytics.totalViews) * 100).toFixed(1)
-              : 0}%
-          </div>
-          <div className="text-sm text-slate-400">Click Rate</div>
-        </div>
-      </div>
-
-      {/* Line Chart for Views Over Time */}
-      <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-8">
-        <h2 className="text-xl font-semibold text-white mb-6">Profile Views Over Time</h2>
-        <div className="relative h-64">
-          {/* Y-axis labels */}
-          <div className="absolute left-0 top-0 bottom-8 flex flex-col justify-between text-xs text-slate-500">
-            <span>{maxViews}</span>
-            <span>{Math.floor(maxViews * 0.75)}</span>
-            <span>{Math.floor(maxViews * 0.5)}</span>
-            <span>{Math.floor(maxViews * 0.25)}</span>
-            <span>0</span>
-          </div>
-
-          {/* Chart area */}
-          <div className="ml-8 h-full pb-8">
-            <svg viewBox="0 0 1000 200" className="w-full h-full" preserveAspectRatio="none">
-              {/* Grid lines */}
-              <line x1="0" y1="0" x2="1000" y2="0" stroke="#334155" strokeWidth="1" />
-              <line x1="0" y1="50" x2="1000" y2="50" stroke="#334155" strokeWidth="0.5" />
-              <line x1="0" y1="100" x2="1000" y2="100" stroke="#334155" strokeWidth="0.5" />
-              <line x1="0" y1="150" x2="1000" y2="150" stroke="#334155" strokeWidth="0.5" />
-              <line x1="0" y1="200" x2="1000" y2="200" stroke="#334155" strokeWidth="1" />
-
-              {/* Line path */}
-              {analytics.dailyViews.length > 1 && (
-                <>
-                  {/* Gradient fill */}
-                  <defs>
-                    <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d={`M ${analytics.dailyViews.map((day, i) => {
-                      const x = (i / (analytics.dailyViews.length - 1)) * 1000
-                      const y = 200 - (day.count / maxViews) * 200
-                      return `${i === 0 ? 'M' : 'L'} ${x},${y}`
-                    }).join(' ')} L 1000,200 L 0,200 Z`}
-                    fill="url(#lineGradient)"
-                  />
-                  <path
-                    d={analytics.dailyViews.map((day, i) => {
-                      const x = (i / (analytics.dailyViews.length - 1)) * 1000
-                      const y = 200 - (day.count / maxViews) * 200
-                      return `${i === 0 ? 'M' : 'L'} ${x},${y}`
-                    }).join(' ')}
-                    stroke="#3b82f6"
-                    strokeWidth="3"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  {/* Data points */}
-                  {analytics.dailyViews.map((day, i) => {
-                    const x = (i / (analytics.dailyViews.length - 1)) * 1000
-                    const y = 200 - (day.count / maxViews) * 200
-                    return (
-                      <circle
-                        key={i}
-                        cx={x}
-                        cy={y}
-                        r="4"
-                        fill="#3b82f6"
-                        className="hover:r-6 transition-all cursor-pointer"
-                      >
-                        <title>{day.date}: {day.count} views</title>
-                      </circle>
-                    )
-                  })}
-                </>
-              )}
-            </svg>
-
-            {/* X-axis labels */}
-            <div className="flex justify-between mt-2 px-1">
-              {analytics.dailyViews.map((day, i) => {
-                // Show fewer labels for longer time ranges
-                const showLabel = timeRange === 7 
-                  ? true 
-                  : timeRange === 30 
-                    ? i % 3 === 0 
-                    : i % 10 === 0
-                
-                return (
-                  <span 
-                    key={i} 
-                    className="text-xs text-slate-500"
-                    style={{ visibility: showLabel ? 'visible' : 'hidden' }}
-                  >
-                    {day.date}
-                  </span>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Link Performance */}
-      <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-8">
-        <h2 className="text-xl font-semibold text-white mb-6">Link Performance</h2>
-        {analytics.linkStats.length > 0 ? (
-          <div className="space-y-4">
-            {analytics.linkStats.map((link) => (
-              <div key={link.link_id} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-white font-medium">{link.title}</span>
-                  <span className="text-slate-400">{link.clicks} clicks</span>
-                </div>
-                <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${(link.clicks / maxClicks) * 100}%` }}
-                  />
-                </div>
-              </div>
+        {/* Date Range Selector */}
+        <div className="mb-8">
+          <div className="flex gap-2">
+            {[7, 30, 90].map(days => (
+              <button
+                key={days}
+                onClick={() => setTimeRange(days)}
+                className={`px-4 py-2 rounded-lg font-medium transition ${
+                  timeRange === days
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-800/50 text-slate-400 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                Last {days} Days
+              </button>
             ))}
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <BarChart3 className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400">No link clicks yet</p>
-            <p className="text-slate-500 text-sm mt-2">Share your profile to start getting clicks!</p>
-          </div>
-        )}
-      </div>
+        </div>
 
-      {/* Top Referrers */}
-      <div className="backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-        <h2 className="text-xl font-semibold text-white mb-6">Top Referrers</h2>
-        {analytics.topReferrers.length > 0 ? (
-          <div className="space-y-3">
-            {analytics.topReferrers.map((referrer, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-400 font-semibold text-sm">
-                    {index + 1}
+        {/* Overview Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <MetricCard
+            title="Total Views"
+            value={analytics.totalViews.toLocaleString()}
+            change={15}
+            changeLabel="vs last period"
+            icon={<Eye className="w-6 h-6" />}
+            trend="up"
+          />
+          <MetricCard
+            title="Total Clicks"
+            value={analytics.totalClicks.toLocaleString()}
+            change={22}
+            changeLabel="vs last period"
+            icon={<MousePointerClick className="w-6 h-6" />}
+            trend="up"
+          />
+          <MetricCard
+            title="Unique Visitors"
+            value={analytics.uniqueVisitors.toLocaleString()}
+            change={8}
+            changeLabel="vs last period"
+            icon={<Users className="w-6 h-6" />}
+            trend="up"
+          />
+          <MetricCard
+            title="Click-through Rate"
+            value={`${analytics.ctr}%`}
+            change={-3}
+            changeLabel="vs last period"
+            icon={<TrendingUp className="w-6 h-6" />}
+            trend="down"
+          />
+        </div>
+
+        {/* Views Over Time */}
+        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-8 mb-8">
+          <h2 className="text-xl font-semibold text-white mb-6">Views Over Time</h2>
+          <AnalyticsChart data={analytics.dailyViews} />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Device Breakdown */}
+          {analytics.deviceStats.length > 0 && (
+            <DeviceBreakdownChart data={analytics.deviceStats} />
+          )}
+
+          {/* Top Links */}
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-8">
+            <h2 className="text-xl font-semibold text-white mb-6">Top Performing Links</h2>
+            <div className="space-y-4">
+              {analytics.linkStats.slice(0, 5).map((link, index) => (
+                <div key={link.link_id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-400 flex items-center justify-center text-sm font-semibold text-blue-400">
+                      {index + 1}
+                    </div>
+                    <span className="text-white font-medium truncate">{link.title}</span>
                   </div>
-                  <span className="text-white font-medium">{referrer.referrer}</span>
+                  <span className="text-slate-400 font-semibold">{link.clicks} clicks</span>
                 </div>
-                <span className="text-slate-400">{referrer.count} views</span>
-              </div>
-            ))}
+              ))}
+              {analytics.linkStats.length === 0 && (
+                <p className="text-center py-8 text-slate-400">No link data yet</p>
+              )}
+            </div>
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <TrendingUp className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400">No referrer data yet</p>
-            <p className="text-slate-500 text-sm mt-2">Share your profile link to see where your visitors come from!</p>
+        </div>
+
+        {/* Geographic Distribution */}
+        {analytics.geoStats.length > 0 && (
+          <div className="mb-8">
+            <GeographicHeatmap data={analytics.geoStats} />
           </div>
         )}
-      </div>
 
-      {/* New Advanced Analytics Section */}
-      <div className="mt-8 grid md:grid-cols-2 gap-6">
-        {/* Device Breakdown */}
-        <DeviceBreakdown data={analytics.deviceStats} />
-
-        {/* Link CTR Stats */}
-        <LinkCTRStats data={analytics.linkCTR} />
-      </div>
-
-      {/* Geographic Breakdown - Full Width */}
-      <div className="mt-6">
-        <GeographicBreakdown data={analytics.geoStats} />
-      </div>
-
-      {/* Hourly Pattern - Full Width */}
-      <div className="mt-6">
-        <HourlyClickPattern data={analytics.hourlyPattern} />
+        {/* Export Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <AnalyticsExporter
+            data={{
+              totalViews: analytics.totalViews,
+              totalClicks: analytics.totalClicks,
+              ctr: analytics.ctr,
+              topLinks: analytics.linkStats.slice(0, 10),
+              deviceBreakdown: analytics.deviceStats,
+              topCountries: analytics.geoStats.slice(0, 10).map(g => ({ country: g.country, visits: g.visits }))
+            }}
+          />
+        </div>
       </div>
     </div>
   )

@@ -248,7 +248,7 @@ export default function DashboardPage() {
       .eq('id', id)
 
     if (!error) {
-      showToast(currentState ? 'Link hidden' : 'Link activated', 'success')
+      showToast('success', currentState ? 'Link Hidden' : 'Link Activated', currentState ? 'Link is now hidden from your profile' : 'Link is now visible on your profile')
       loadData()
     }
   }
@@ -372,7 +372,7 @@ export default function DashboardPage() {
               
               <div className="space-y-6">
                 <AvatarUpload
-                  currentAvatar={profile?.avatar_url}
+                  currentAvatarUrl={profile?.avatar_url}
                   onUploadComplete={(url) => {
                     setProfile({ ...profile, avatar_url: url })
                     supabase.from('profiles').update({ avatar_url: url }).eq('id', profile.id)
@@ -572,9 +572,9 @@ export default function DashboardPage() {
                           key={link.id}
                           link={link}
                           existingCategories={getExistingCategories()}
-                          onToggle={(id, state) => toggleLink(id, state)}
-                          onDelete={(id) => deleteLink(id)}
-                          onEdit={(id, updates) => updateLink(id, updates)}
+                          onToggle={(id: string, state: boolean) => toggleLink(id, state)}
+                          onDelete={(id: string) => deleteLink(id)}
+                          onEdit={(id: string, updates: any) => updateLink(id, updates)}
                         />
                       ))}
                     </div>
