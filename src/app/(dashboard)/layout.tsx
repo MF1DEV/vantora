@@ -6,6 +6,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
 import { LayoutDashboard, BarChart3, Settings, LogOut, ExternalLink, Globe } from 'lucide-react'
+import { ToastProvider } from '@/components/ui/Toast'
 
 // Dynamic imports for sidebar components
 const ProfilePreview = dynamic(() => import('@/components/profile/ProfileView'), {
@@ -70,69 +71,71 @@ export default function DashboardLayout({
   ]
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <nav className="relative z-50 backdrop-blur-sm border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />
-              <span className="text-white text-xl font-bold">vantora.id</span>
-            </Link>
+    <ToastProvider>
+      <div className="min-h-screen bg-slate-950">
+        <nav className="relative z-50 backdrop-blur-sm border-b border-white/10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-20">
+              <Link href="/" className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />
+                <span className="text-white text-xl font-bold">vantora.id</span>
+              </Link>
 
-            <div className="flex items-center space-x-6">
-              {profile && (
-                <Link
-                  href={`/${profile.username}`}
-                  target="_blank"
+              <div className="flex items-center space-x-6">
+                {profile && (
+                  <Link
+                    href={`/${profile.username}`}
+                    target="_blank"
+                    className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-300 hover:text-blue-400 transition"
+                  >
+                    <span>View Profile</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </Link>
+                )}
+                <button
+                  onClick={handleLogout}
                   className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-300 hover:text-blue-400 transition"
                 >
-                  <span>View Profile</span>
-                  <ExternalLink className="w-4 h-4" />
-                </Link>
-              )}
-              <button
-                onClick={handleLogout}
-                className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-300 hover:text-blue-400 transition"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Logout</span>
-              </button>
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
+              </div>
             </div>
           </div>
+        </nav>
+
+        <div className="flex">
+          <aside className="w-64 min-h-screen backdrop-blur-sm border-r border-white/10 p-6">
+            <nav className="space-y-2">
+              {navItems.map((item) => {
+                const Icon = item.icon
+                const isActive = pathname?.startsWith(item.href)
+                
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${
+                      isActive
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-300 hover:bg-slate-800/50 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </Link>
+                )
+              })}
+            </nav>
+          </aside>
+
+          <main className="flex-1">
+            <div className="max-w-5xl mx-auto p-8">
+              {children}
+            </div>
+          </main>
         </div>
-      </nav>
-
-      <div className="flex">
-        <aside className="w-64 min-h-screen backdrop-blur-sm border-r border-white/10 p-6">
-          <nav className="space-y-2">
-            {navItems.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname?.startsWith(item.href)
-              
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${
-                    isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'text-slate-300 hover:bg-slate-800/50 hover:text-white'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="text-sm font-medium">{item.label}</span>
-                </Link>
-              )
-            })}
-          </nav>
-        </aside>
-
-        <main className="flex-1">
-          <div className="max-w-5xl mx-auto p-8">
-            {children}
-          </div>
-        </main>
       </div>
-    </div>
+    </ToastProvider>
   )
 }
