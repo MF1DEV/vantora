@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
 import { registerSchema, validateRequest, isDisposableEmail } from '@/lib/utils/validation'
+import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
 
 export async function POST(request: NextRequest) {
   try {
@@ -71,6 +72,15 @@ export async function POST(request: NextRequest) {
         console.error('Profile creation error:', profileError)
         // Don't return error to user as auth account was created
       }
+
+      // Log successful registration
+      await logAuditEvent({
+        userId: authData.user.id,
+        eventType: 'register',
+        eventData: { email, username },
+        ipAddress: getClientIp(request),
+        userAgent: getUserAgent(request),
+      })
     }
 
     return NextResponse.json({

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
+import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -70,6 +71,15 @@ export async function DELETE(request: NextRequest) {
     if (profileError) {
       console.error('Error deleting profile:', profileError)
     }
+
+    // Log account deletion before deleting the user
+    await logAuditEvent({
+      userId: user.id,
+      eventType: 'account_delete',
+      eventData: { email: user.email },
+      ipAddress: getClientIp(request),
+      userAgent: getUserAgent(request),
+    })
 
     // 4. Delete auth user (this is the final step)
     const { error: deleteUserError } = await supabase.auth.admin.deleteUser(

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
 import { profileUpdateSchema, validateRequest } from '@/lib/utils/validation'
+import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
 
 // Get user profile
 export async function GET(request: NextRequest) {
@@ -90,6 +91,15 @@ export async function PUT(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Log profile update
+    await logAuditEvent({
+      userId: user.id,
+      eventType: 'profile_update',
+      eventData: { updated_fields: Object.keys(validation.data) },
+      ipAddress: getClientIp(request),
+      userAgent: getUserAgent(request),
+    })
 
     return NextResponse.json(
       { message: 'Profile updated successfully' },

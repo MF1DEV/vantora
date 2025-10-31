@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
+import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
 
 export async function GET(request: NextRequest) {
   try {
@@ -49,6 +50,18 @@ export async function GET(request: NextRequest) {
         gdpr_compliant: true,
       },
     }
+
+    // Log data export
+    await logAuditEvent({
+      userId: user.id,
+      eventType: 'data_export',
+      eventData: { 
+        total_links: linksResult.data?.length || 0,
+        total_analytics: analyticsResult.data?.length || 0,
+      },
+      ipAddress: getClientIp(request),
+      userAgent: getUserAgent(request),
+    })
 
     // Return as downloadable JSON file
     return new NextResponse(JSON.stringify(userData, null, 2), {

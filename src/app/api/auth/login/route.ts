@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { type NextRequest } from 'next/server'
 import { loginSchema, validateRequest } from '@/lib/utils/validation'
+import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,13 +19,32 @@ export async function POST(request: NextRequest) {
 
     const { email, password } = validation.data
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
     if (error) {
+      // Log failed login attempt
+      await logAuditEvent({
+        eventType: 'failed_login',
+        eventData: { email, reason: error.message },
+        ipAddress: getClientIp(request),
+        userAgent: getUserAgent(request),
+      })
+      
       return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
+    // Log successful login
+    if (authData.user) {
+      await logAuditEvent({
+        userId: authData.user.id,
+        eventType: 'login',
+        eventData: { email },
+        ipAddress: getClientIp(request),
+        userAgent: getUserAgent(request),
+      })
     }
 
     return NextResponse.json({
