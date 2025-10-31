@@ -372,6 +372,7 @@ export default function DashboardPage() {
               
               <div className="space-y-6">
                 <AvatarUpload
+                  userId={profile?.id}
                   currentAvatarUrl={profile?.avatar_url}
                   onUploadComplete={(url) => {
                     setProfile({ ...profile, avatar_url: url })
