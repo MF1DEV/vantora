@@ -9,6 +9,7 @@ import ThemeSelector from '@/components/dashboard/ThemeSelector'
 import AdvancedThemeCustomizer from '@/components/dashboard/AdvancedThemeCustomizer'
 import CustomCSSEditor from '@/components/dashboard/CustomCSSEditor'
 import ThemeTemplatesGallery from '@/components/dashboard/ThemeTemplatesGallery'
+import ProfileLayoutSelector from '@/components/dashboard/ProfileLayoutSelector'
 import SocialMediaLinks from '@/components/dashboard/SocialMediaLinks'
 import AvatarUpload from '@/components/dashboard/AvatarUpload'
 import DraggableLink from '@/components/dashboard/DraggableLink'
@@ -640,6 +641,29 @@ export default function DashboardPage() {
                   showSuccess('Advanced theme saved successfully!')
                 }}
               />
+
+              {/* Profile Layout Selector */}
+              <div className="p-6 bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl">
+                <ProfileLayoutSelector
+                  currentLayout={profile?.profile_layout || 'classic'}
+                  onLayoutChange={async (layout) => {
+                    const { data: { user } } = await supabase.auth.getUser()
+                    if (!user) return
+
+                    const { error } = await supabase
+                      .from('profiles')
+                      .update({ profile_layout: layout })
+                      .eq('id', user.id)
+
+                    if (error) {
+                      setErrors({ general: 'Failed to update layout' })
+                    } else {
+                      showSuccess('Profile layout updated successfully!')
+                      loadData()
+                    }
+                  }}
+                />
+              </div>
               
               {/* Custom CSS Editor */}
               <div className="p-6 bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl">
