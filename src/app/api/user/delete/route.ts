@@ -41,37 +41,6 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    // Delete user data in order (cascading deletes)
-    // 1. Delete analytics data
-    const { error: analyticsError } = await supabase
-      .from('analytics')
-      .delete()
-      .eq('user_id', user.id)
-
-    if (analyticsError) {
-      console.error('Error deleting analytics:', analyticsError)
-    }
-
-    // 2. Delete links
-    const { error: linksError } = await supabase
-      .from('links')
-      .delete()
-      .eq('user_id', user.id)
-
-    if (linksError) {
-      console.error('Error deleting links:', linksError)
-    }
-
-    // 3. Delete profile
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', user.id)
-
-    if (profileError) {
-      console.error('Error deleting profile:', profileError)
-    }
-
     // Log account deletion before deleting the user
     await logAuditEvent({
       userId: user.id,
@@ -81,16 +50,18 @@ export async function DELETE(request: NextRequest) {
       userAgent: getUserAgent(request),
     })
 
-    // 4. Delete auth user using service role client (requires admin privileges)
+    // Use service role client to call the delete function
     const serviceRoleClient = createServiceRoleClient()
-    const { error: deleteUserError } = await serviceRoleClient.auth.admin.deleteUser(
-      user.id
-    )
+    
+    // Call the database function to delete user and all data
+    const { error: deleteError } = await serviceRoleClient.rpc('delete_user_account', {
+      user_id: user.id
+    })
 
-    if (deleteUserError) {
-      console.error('Error deleting user account:', deleteUserError)
+    if (deleteError) {
+      console.error('Error deleting user account:', deleteError)
       return NextResponse.json(
-        { error: 'Failed to delete account. Please contact support.' },
+        { error: `Failed to delete account: ${deleteError.message}` },
         { status: 500 }
       )
     }
