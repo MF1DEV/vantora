@@ -220,12 +220,12 @@ export default async function PublicProfilePage({
                 }}
               />
             )}
-            <h1 className="text-3xl font-bold text-white mb-2 animate-fade-in animation-delay-200">
+            <h1 className="text-3xl font-bold mb-2 animate-fade-in animation-delay-200" style={{ color: 'var(--color-text, #ffffff)' }}>
               {profile.display_name || profile.username}
             </h1>
-            <p className="text-slate-400 mb-4 animate-fade-in animation-delay-300">@{profile.username}</p>
+            <p className="mb-4 animate-fade-in animation-delay-300" style={{ color: 'var(--color-text-secondary, #94a3b8)' }}>@{profile.username}</p>
             {profile.bio && (
-              <p className="text-slate-300 max-w-md mb-4 animate-fade-in animation-delay-400">{profile.bio}</p>
+              <p className="max-w-md mb-4 animate-fade-in animation-delay-400" style={{ color: 'var(--color-text-secondary, #cbd5e1)' }}>{profile.bio}</p>
             )}
             
             {/* Social Media Links */}
@@ -248,17 +248,17 @@ export default async function PublicProfilePage({
             {/* Visitor Counter */}
             <div className="flex items-center justify-center gap-2 mb-4">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900/50 rounded-lg border border-slate-700">
-                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" style={{ color: 'var(--color-text-secondary, #94a3b8)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                <span className="text-sm font-medium text-slate-300">
+                <span className="text-sm font-medium" style={{ color: 'var(--color-text-secondary, #cbd5e1)' }}>
                   {viewCount.toLocaleString()} views
                 </span>
               </div>
             </div>
             
-            <p className="text-slate-500 text-sm text-center">
+            <p className="text-sm text-center" style={{ color: 'var(--color-text-secondary, #71717a)' }}>
               Create your own link page at{' '}
               <a 
                 href="/" 

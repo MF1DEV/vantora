@@ -63,8 +63,8 @@ export function applyCustomTheme(profile: any) {
       '--color-accent': customColors.accent || '#3b82f6',
       '--color-button': customColors.button || '#3b82f6',
       '--color-button-text': customColors.buttonText || '#ffffff',
-      '--color-text': customColors.text || '#ffffff',
-      '--color-text-secondary': customColors.textSecondary || '#94a3b8',
+      '--color-text': customColors.text || customColors.primaryText || '#ffffff',
+      '--color-text-secondary': customColors.textSecondary || customColors.secondaryText || '#94a3b8',
       '--font-heading': profile.font_heading || 'Inter',
       '--font-body': profile.font_body || 'Inter',
     } as React.CSSProperties

@@ -158,23 +158,79 @@ export default function ThemesPage() {
         }
       }
 
+      // Map template to basic theme columns (always update these)
+      // This ensures templates work even without migration 009
+      const basicThemeUpdate: any = {
+        theme_button_style: template.buttonStyle || 'rounded',
+      }
+
+      // Try to map custom colors to basic accent color
+      if (template.colors?.button) {
+        // Determine closest accent color from the hex value
+        const buttonColor = template.colors.button.toLowerCase()
+        if (buttonColor.includes('3b82f6') || buttonColor.includes('2563eb')) {
+          basicThemeUpdate.theme_accent_color = 'blue'
+        } else if (buttonColor.includes('a855f7') || buttonColor.includes('8b5cf6')) {
+          basicThemeUpdate.theme_accent_color = 'purple'
+        } else if (buttonColor.includes('ec4899') || buttonColor.includes('db2777')) {
+          basicThemeUpdate.theme_accent_color = 'pink'
+        } else if (buttonColor.includes('10b981') || buttonColor.includes('059669')) {
+          basicThemeUpdate.theme_accent_color = 'green'
+        } else if (buttonColor.includes('f97316') || buttonColor.includes('ea580c')) {
+          basicThemeUpdate.theme_accent_color = 'orange'
+        } else if (buttonColor.includes('ef4444') || buttonColor.includes('dc2626')) {
+          basicThemeUpdate.theme_accent_color = 'red'
+        } else if (buttonColor.includes('06b6d4') || buttonColor.includes('0891b2')) {
+          basicThemeUpdate.theme_accent_color = 'cyan'
+        } else if (buttonColor.includes('14b8a6') || buttonColor.includes('0d9488')) {
+          basicThemeUpdate.theme_accent_color = 'teal'
+        } else if (buttonColor.includes('f59e0b') || buttonColor.includes('d97706')) {
+          basicThemeUpdate.theme_accent_color = 'yellow'
+        } else {
+          basicThemeUpdate.theme_accent_color = 'blue' // default
+        }
+      }
+
+      // Map background type to basic theme_background
+      if (template.background.type === 'solid') {
+        basicThemeUpdate.theme_background = 'solid-dark'
+      } else {
+        // Default to a gradient based on colors
+        basicThemeUpdate.theme_background = 'gradient-blue' // will be overridden by advanced if available
+      }
+
+      // Prepare advanced theme update (only if columns exist)
+      const advancedThemeUpdate: any = {
+        custom_colors: template.colors,
+        font_heading: template.fonts.heading,
+        font_body: template.fonts.body,
+        background_type: template.background.type,
+        background_gradient: backgroundGradient,
+        background_color: template.background.color,
+        button_style: template.buttonStyle,
+      }
+
+      // Combine updates
+      const updateData = hasAdvancedFeatures 
+        ? { ...basicThemeUpdate, ...advancedThemeUpdate }
+        : basicThemeUpdate
+
+      console.log('Applying template with data:', { 
+        templateName: template.name,
+        hasAdvancedFeatures, 
+        updateData 
+      })
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          custom_colors: template.colors,
-          font_heading: template.fonts.heading,
-          font_body: template.fonts.body,
-          background_type: template.background.type,
-          background_gradient: backgroundGradient,
-          background_color: template.background.color,
-          button_style: template.buttonStyle,
-        })
+        .update(updateData)
         .eq('id', profile.id)
 
       if (error) {
         console.error('Template apply error:', error)
         showToast('error', 'Failed to Apply Template', error.message)
       } else {
+        console.log('Template applied successfully')
         showToast('success', 'Template Applied', 'Theme template has been applied to your profile')
         loadProfile()
       }
