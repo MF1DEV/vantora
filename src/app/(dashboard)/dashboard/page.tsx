@@ -350,30 +350,31 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         
         {/* Header with Quick Actions */}
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-            <p className="text-slate-400">Welcome back, {profile?.display_name || profile?.username}!</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Dashboard</h1>
+            <p className="text-sm sm:text-base text-slate-400">Welcome back, {profile?.display_name || profile?.username}!</p>
           </div>
           
           {/* Quick Actions */}
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             <button
               onClick={copyProfileLink}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-blue-500 rounded-lg text-sm font-medium text-white transition"
+              className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 hover:border-blue-500 rounded-lg text-xs sm:text-sm font-medium text-white transition"
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 text-green-400" />
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400" />
                   <span className="text-green-400">Copied!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4" />
-                  Copy Link
+                  <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Copy Link</span>
+                  <span className="sm:hidden">Copy</span>
                 </>
               )}
             </button>
@@ -381,79 +382,80 @@ export default function DashboardPage() {
             <Link
               href={`/${profile?.username}`}
               target="_blank"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium text-white transition"
+              className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-xs sm:text-sm font-medium text-white transition"
             >
-              <ExternalLink className="w-4 h-4" />
-              View Profile
+              <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">View Profile</span>
+              <span className="sm:hidden">View</span>
             </Link>
           </div>
         </div>
 
         {/* Enhanced Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           {/* Total Links */}
-          <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-sm border border-blue-500/20 rounded-xl p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16" />
+          <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 backdrop-blur-sm border border-blue-500/20 rounded-xl p-4 sm:p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-blue-500/10 rounded-full -mr-12 sm:-mr-16 -mt-12 sm:-mt-16" />
             <div className="relative">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <ExternalLink className="w-5 h-5 text-blue-400" />
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg">
+                  <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
                 </div>
-                <span className="text-xs font-medium text-blue-400 bg-blue-500/20 px-2 py-1 rounded-full">
+                <span className="text-[10px] sm:text-xs font-medium text-blue-400 bg-blue-500/20 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
                   {links.filter(l => l.is_active).length} active
                 </span>
               </div>
-              <h3 className="text-sm font-medium text-slate-400 mb-1">Total Links</h3>
-              <p className="text-3xl font-bold text-white">{links.length}</p>
+              <h3 className="text-[10px] sm:text-sm font-medium text-slate-400 mb-1">Total Links</h3>
+              <p className="text-xl sm:text-3xl font-bold text-white">{links.length}</p>
             </div>
           </div>
 
           {/* Total Clicks */}
-          <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full -mr-16 -mt-16" />
+          <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-4 sm:p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-purple-500/10 rounded-full -mr-12 sm:-mr-16 -mt-12 sm:-mt-16" />
             <div className="relative">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-2 bg-purple-500/20 rounded-lg">
-                  <BarChart3 className="w-5 h-5 text-purple-400" />
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="p-1.5 sm:p-2 bg-purple-500/20 rounded-lg">
+                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
                 </div>
-                <Link href="/analytics" className="text-xs font-medium text-purple-400 hover:text-purple-300 transition">
+                <Link href="/analytics" className="text-[10px] sm:text-xs font-medium text-purple-400 hover:text-purple-300 transition">
                   View →
                 </Link>
               </div>
-              <h3 className="text-sm font-medium text-slate-400 mb-1">Total Clicks</h3>
-              <p className="text-3xl font-bold text-white">{links.reduce((sum, link) => sum + (link.click_count || 0), 0).toLocaleString()}</p>
+              <h3 className="text-[10px] sm:text-sm font-medium text-slate-400 mb-1">Total Clicks</h3>
+              <p className="text-xl sm:text-3xl font-bold text-white">{links.reduce((sum, link) => sum + (link.click_count || 0), 0).toLocaleString()}</p>
             </div>
           </div>
 
           {/* Profile Views */}
-          <div className="bg-gradient-to-br from-pink-500/10 to-pink-600/5 backdrop-blur-sm border border-pink-500/20 rounded-xl p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full -mr-16 -mt-16" />
+          <div className="bg-gradient-to-br from-pink-500/10 to-pink-600/5 backdrop-blur-sm border border-pink-500/20 rounded-xl p-4 sm:p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-pink-500/10 rounded-full -mr-12 sm:-mr-16 -mt-12 sm:-mt-16" />
             <div className="relative">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-2 bg-pink-500/20 rounded-lg">
-                  <Users className="w-5 h-5 text-pink-400" />
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="p-1.5 sm:p-2 bg-pink-500/20 rounded-lg">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-pink-400" />
                 </div>
               </div>
-              <h3 className="text-sm font-medium text-slate-400 mb-1">Profile Views</h3>
-              <p className="text-3xl font-bold text-white">{(profile?.total_views || 0).toLocaleString()}</p>
+              <h3 className="text-[10px] sm:text-sm font-medium text-slate-400 mb-1">Profile Views</h3>
+              <p className="text-xl sm:text-3xl font-bold text-white">{(profile?.total_views || 0).toLocaleString()}</p>
             </div>
           </div>
 
           {/* Quick Access */}
-          <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 backdrop-blur-sm border border-green-500/20 rounded-xl p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full -mr-16 -mt-16" />
+          <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 backdrop-blur-sm border border-green-500/20 rounded-xl p-4 sm:p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-green-500/10 rounded-full -mr-12 sm:-mr-16 -mt-12 sm:-mt-16" />
             <div className="relative">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <Palette className="w-5 h-5 text-green-400" />
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="p-1.5 sm:p-2 bg-green-500/20 rounded-lg">
+                  <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
                 </div>
               </div>
-              <h3 className="text-sm font-medium text-slate-400 mb-2">Quick Access</h3>
+              <h3 className="text-[10px] sm:text-sm font-medium text-slate-400 mb-2">Quick Access</h3>
               <div className="flex flex-col gap-1">
-                <Link href="/dashboard/themes" className="text-sm text-green-400 hover:text-green-300 transition">
+                <Link href="/dashboard/themes" className="text-[10px] sm:text-sm text-green-400 hover:text-green-300 transition">
                   Themes →
                 </Link>
-                <Link href="/settings" className="text-sm text-green-400 hover:text-green-300 transition">
+                <Link href="/settings" className="text-[10px] sm:text-sm text-green-400 hover:text-green-300 transition">
                   Settings →
                 </Link>
               </div>
@@ -461,16 +463,16 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           
           {/* Left Column: Profile Editor */}
           <div className="lg:col-span-1 space-y-6">
             
             {/* Profile Card */}
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6">
-              <h2 className="text-xl font-semibold text-white mb-6">Profile</h2>
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-white mb-4 sm:mb-6">Profile</h2>
               
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <AvatarUpload
                   userId={profile?.id}
                   currentAvatarUrl={profile?.avatar_url}
@@ -482,27 +484,27 @@ export default function DashboardPage() {
                 />
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-2">
                     Display Name
                   </label>
                   <input
                     type="text"
                     value={profile?.display_name || ''}
                     onChange={(e) => setProfile({ ...profile, display_name: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Your name"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-2">
                     Bio
                   </label>
                   <textarea
                     value={profile?.bio || ''}
                     onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                     rows={3}
-                    className="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     placeholder="Tell people about yourself..."
                   />
                   <p className="text-xs text-slate-500 mt-1">{profile?.bio?.length || 0}/160</p>
@@ -511,7 +513,7 @@ export default function DashboardPage() {
                 <button
                   onClick={updateProfile}
                   disabled={saving}
-                  className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white font-medium rounded-lg transition flex items-center justify-center gap-2"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white font-medium rounded-lg transition flex items-center justify-center gap-2"
                 >
                   {saving ? (
                     <>
@@ -528,7 +530,7 @@ export default function DashboardPage() {
 
                 <button
                   onClick={copyProfileLink}
-                  className="w-full px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition flex items-center justify-center gap-2"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition flex items-center justify-center gap-2"
                 >
                   {copied ? (
                     <>
@@ -547,38 +549,38 @@ export default function DashboardPage() {
           </div>
 
           {/* Right Column: Links Management */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             
             {/* Add New Link */}
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Plus className="w-5 h-5 text-blue-400" />
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-4 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg">
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-white">Add New Link</h2>
-                  <p className="text-sm text-slate-400">Create a link to share on your profile</p>
+                  <h2 className="text-lg sm:text-xl font-semibold text-white">Add New Link</h2>
+                  <p className="text-xs sm:text-sm text-slate-400">Create a link to share on your profile</p>
                 </div>
               </div>
               
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {/* Basic Information */}
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-300 mb-3 sm:mb-4 flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
                     Basic Information
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {/* Link Type Selector */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-2">
                         Link Type
                       </label>
-                      <div className="flex gap-3">
+                      <div className="flex gap-2 sm:gap-3">
                         <button
                           type="button"
                           onClick={() => setNewLink({ ...newLink, linkType: 'regular', socialPlatform: null })}
-                          className={`flex-1 px-4 py-3 rounded-lg border-2 font-medium transition-all ${
+                          className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-base rounded-lg border-2 font-medium transition-all ${
                             newLink.linkType === 'regular'
                               ? 'border-blue-500 bg-blue-500/10 text-blue-400'
                               : 'border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-600'
@@ -589,7 +591,7 @@ export default function DashboardPage() {
                         <button
                           type="button"
                           onClick={() => setNewLink({ ...newLink, linkType: 'social' })}
-                          className={`flex-1 px-4 py-3 rounded-lg border-2 font-medium transition-all ${
+                          className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-base rounded-lg border-2 font-medium transition-all ${
                             newLink.linkType === 'social'
                               ? 'border-purple-500 bg-purple-500/10 text-purple-400'
                               : 'border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-600'
@@ -614,23 +616,23 @@ export default function DashboardPage() {
                       />
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-3 sm:gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                        <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-2">
                           Title <span className="text-red-400">*</span>
                         </label>
                         <input
                           type="text"
                           value={newLink.title}
                           onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
-                          className={`w-full px-4 py-3 bg-slate-900 border rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.title ? 'border-red-500' : 'border-slate-700'}`}
+                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-slate-900 border rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.title ? 'border-red-500' : 'border-slate-700'}`}
                           placeholder="My Awesome Link"
                         />
-                        {errors.title && <p className="text-red-400 text-sm mt-1.5">{errors.title}</p>}
+                        {errors.title && <p className="text-red-400 text-xs sm:text-sm mt-1.5">{errors.title}</p>}
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                        <label className="block text-xs sm:text-sm font-medium text-slate-300 mb-2">
                           {newLink.linkType === 'social' && newLink.socialPlatform 
                             ? (newLink.socialPlatform === 'discord' || newLink.socialPlatform === 'spotify' ? 'URL' : 'Username')
                             : 'URL'} <span className="text-red-400">*</span>
@@ -639,14 +641,14 @@ export default function DashboardPage() {
                           type={newLink.linkType === 'social' && newLink.socialPlatform && !['discord', 'spotify'].includes(newLink.socialPlatform) ? 'text' : 'url'}
                           value={newLink.url}
                           onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
-                          className={`w-full px-4 py-3 bg-slate-900 border rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.url ? 'border-red-500' : 'border-slate-700'}`}
+                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base bg-slate-900 border rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${errors.url ? 'border-red-500' : 'border-slate-700'}`}
                           placeholder={
                             newLink.linkType === 'social' && newLink.socialPlatform
                               ? platformPlaceholders[newLink.socialPlatform as SocialPlatform]
                               : 'example.com or https://example.com'
                           }
                         />
-                        {errors.url && <p className="text-red-400 text-sm mt-1.5">{errors.url}</p>}
+                        {errors.url && <p className="text-red-400 text-xs sm:text-sm mt-1.5">{errors.url}</p>}
                       </div>
                     </div>
                   </div>
