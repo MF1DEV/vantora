@@ -7,6 +7,8 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import ThemeSelector from '@/components/dashboard/ThemeSelector'
 import AdvancedThemeCustomizer from '@/components/dashboard/AdvancedThemeCustomizer'
+import CustomCSSEditor from '@/components/dashboard/CustomCSSEditor'
+import ThemeTemplatesGallery from '@/components/dashboard/ThemeTemplatesGallery'
 import SocialMediaLinks from '@/components/dashboard/SocialMediaLinks'
 import AvatarUpload from '@/components/dashboard/AvatarUpload'
 import DraggableLink from '@/components/dashboard/DraggableLink'
@@ -598,14 +600,70 @@ export default function DashboardPage() {
           ) : activeTab === 'theme' ? (
             <ThemeSelector currentTheme={theme} onThemeChange={handleThemeChange} />
           ) : (
-            <AdvancedThemeCustomizer 
-              userId={profile?.id}
-              initialData={profile}
-              onSave={() => {
-                loadData()
-                showSuccess('Advanced theme saved successfully!')
-              }}
-            />
+            <div className="space-y-6">
+              {/* Theme Templates Gallery */}
+              <div className="p-6 bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl">
+                <ThemeTemplatesGallery
+                  onApplyTemplate={async (template) => {
+                    const { data: { user } } = await supabase.auth.getUser()
+                    if (!user) return
+
+                    const { error } = await supabase
+                      .from('profiles')
+                      .update({
+                        custom_colors: template.colors,
+                        font_heading: template.fonts.heading,
+                        font_body: template.fonts.body,
+                        background_type: template.background.type,
+                        background_gradient: template.background.gradient,
+                        background_color: template.background.color,
+                        button_style: template.buttonStyle,
+                      })
+                      .eq('id', user.id)
+
+                    if (error) {
+                      setErrors({ general: 'Failed to apply theme template' })
+                    } else {
+                      showSuccess('Theme template applied successfully!')
+                      loadData()
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Advanced Theme Customizer */}
+              <AdvancedThemeCustomizer 
+                userId={profile?.id}
+                initialData={profile}
+                onSave={() => {
+                  loadData()
+                  showSuccess('Advanced theme saved successfully!')
+                }}
+              />
+              
+              {/* Custom CSS Editor */}
+              <div className="p-6 bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-2xl">
+                <CustomCSSEditor
+                  initialCSS={profile?.custom_css || ''}
+                  onSave={async (css) => {
+                    const { data: { user } } = await supabase.auth.getUser()
+                    if (!user) return
+
+                    const { error } = await supabase
+                      .from('profiles')
+                      .update({ custom_css: css })
+                      .eq('id', user.id)
+
+                    if (error) {
+                      setErrors({ general: 'Failed to save custom CSS' })
+                    } else {
+                      showSuccess('Custom CSS saved successfully!')
+                      loadData()
+                    }
+                  }}
+                />
+              </div>
+            </div>
           )}
         </div>
 
