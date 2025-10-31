@@ -35,9 +35,9 @@ CREATE OR REPLACE FUNCTION is_link_visible(
 ) RETURNS BOOLEAN AS $$
 DECLARE
   link RECORD;
-  current_time TIME;
-  current_date DATE;
-  current_day INT; -- 0 = Sunday, 6 = Saturday
+  check_time TIME;
+  check_date DATE;
+  check_day INT; -- 0 = Sunday, 6 = Saturday
 BEGIN
   SELECT * INTO link FROM links WHERE id = link_id;
   
@@ -46,22 +46,22 @@ BEGIN
     RETURN FALSE;
   END IF;
   
-  current_time := LOCALTIME;
-  current_date := CURRENT_DATE;
-  current_day := EXTRACT(DOW FROM current_date);
+  check_time := LOCALTIME;
+  check_date := CURRENT_DATE;
+  check_day := EXTRACT(DOW FROM check_date);
   
   -- Check date range
-  IF link.schedule_start IS NOT NULL AND current_date < link.schedule_start THEN
+  IF link.schedule_start IS NOT NULL AND check_date < link.schedule_start THEN
     RETURN FALSE;
   END IF;
   
-  IF link.schedule_end IS NOT NULL AND current_date > link.schedule_end THEN
+  IF link.schedule_end IS NOT NULL AND check_date > link.schedule_end THEN
     RETURN FALSE;
   END IF;
   
   -- Check time range
   IF link.time_start IS NOT NULL AND link.time_end IS NOT NULL THEN
-    IF current_time < link.time_start OR current_time > link.time_end THEN
+    IF check_time < link.time_start OR check_time > link.time_end THEN
       RETURN FALSE;
     END IF;
   END IF;
@@ -70,7 +70,7 @@ BEGIN
   IF link.recurring_schedule IS NOT NULL THEN
     -- Check if current day is in allowed days
     IF link.recurring_schedule->>'type' = 'days_of_week' THEN
-      IF NOT (link.recurring_schedule->'days' ? current_day::TEXT) THEN
+      IF NOT (link.recurring_schedule->'days' ? check_day::TEXT) THEN
         RETURN FALSE;
       END IF;
     END IF;
