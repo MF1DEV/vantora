@@ -4,14 +4,12 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Loader2, Check, X } from 'lucide-react'
-import { useCsrf } from '@/hooks/useCsrf'
 import { createClient } from '@/lib/supabase/client'
 
 function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
-  const { getCsrfHeaders } = useCsrf()
   
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -107,14 +105,11 @@ function RegisterForm() {
 
     try {
       // Call our API endpoint instead of direct Supabase auth
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        ...getCsrfHeaders(),
-      }
-
       const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           username: formData.username.toLowerCase(),
           email: formData.email,

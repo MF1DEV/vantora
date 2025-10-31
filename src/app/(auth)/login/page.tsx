@@ -4,11 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
-import { useCsrf } from '@/hooks/useCsrf'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { getCsrfHeaders } = useCsrf()
   
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -44,14 +42,11 @@ export default function LoginPage() {
 
     try {
       // Call our API endpoint instead of direct Supabase auth
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        ...getCsrfHeaders(),
-      }
-
       const response = await fetch('/api/auth/login', {
         method: 'POST',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,

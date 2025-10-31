@@ -4,7 +4,6 @@ import { type NextRequest } from 'next/server'
 import { registerSchema, validateRequest, isDisposableEmail } from '@/lib/utils/validation'
 import { logAuditEvent, getClientIp, getUserAgent } from '@/lib/utils/audit'
 import { rateLimit, getRateLimitIdentifier, RateLimitConfig } from '@/lib/utils/rateLimit'
-import { requireCsrfToken } from '@/lib/utils/csrf'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,16 +11,6 @@ export async function POST(request: NextRequest) {
   try {
     const requestUrl = new URL(request.url)
     const supabase = await createClient()
-
-    // Validate CSRF token
-    try {
-      await requireCsrfToken(request)
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'Invalid CSRF token. Please refresh the page and try again.' },
-        { status: 403 }
-      )
-    }
 
     // Apply rate limiting
     const ip = getClientIp(request)
