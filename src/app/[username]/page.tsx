@@ -107,10 +107,10 @@ export default async function PublicProfilePage({
       </div>
 
       <div className="relative z-10 max-w-2xl mx-auto px-6 py-20">
-        <div className="backdrop-blur-sm border border-white/10 rounded-3xl p-8 md:p-12">
+        <div className="backdrop-blur-sm border border-white/10 rounded-3xl p-8 md:p-12 animate-scale-in">
           <div className="flex flex-col items-center text-center mb-8">
             {profile.avatar_url ? (
-              <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/10 mb-4">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/10 mb-4 animate-fade-in animation-delay-100">
                 <img
                   src={profile.avatar_url}
                   alt={profile.display_name || profile.username}
@@ -118,19 +118,19 @@ export default async function PublicProfilePage({
                 />
               </div>
             ) : (
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4" />
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4 animate-fade-in animation-delay-100" />
             )}
-            <h1 className="text-3xl font-bold text-white mb-2">
+            <h1 className="text-3xl font-bold text-white mb-2 animate-fade-in animation-delay-200">
               {profile.display_name || profile.username}
             </h1>
-            <p className="text-slate-400 mb-4">@{profile.username}</p>
+            <p className="text-slate-400 mb-4 animate-fade-in animation-delay-300">@{profile.username}</p>
             {profile.bio && (
-              <p className="text-slate-300 max-w-md mb-4">{profile.bio}</p>
+              <p className="text-slate-300 max-w-md mb-4 animate-fade-in animation-delay-400">{profile.bio}</p>
             )}
             
             {/* Social Media Links */}
             {profile.social_links && Object.keys(profile.social_links).length > 0 && (
-              <div className="flex gap-3 justify-center mt-4">
+              <div className="flex gap-3 justify-center mt-4 animate-fade-in animation-delay-500">
                 <SocialMediaLinks links={profile.social_links} readonly />
               </div>
             )}

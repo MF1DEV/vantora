@@ -84,14 +84,22 @@ export default function ProfileLinks({ username }: { username: string }) {
 
   return (
     <div className="space-y-3">
-      {links.map((link) => (
-        <LinkButton
+      {links.map((link, index) => (
+        <div
           key={link.id}
-          title={link.title}
-          url={link.url}
-          icon={link.icon}
-          onClick={() => trackClick(link.id)}
-        />
+          className="animate-fade-in-up opacity-0"
+          style={{
+            animationDelay: `${index * 0.1}s`,
+            animationFillMode: 'forwards'
+          }}
+        >
+          <LinkButton
+            title={link.title}
+            url={link.url}
+            icon={link.icon}
+            onClick={() => trackClick(link.id)}
+          />
+        </div>
       ))}
     </div>
   )

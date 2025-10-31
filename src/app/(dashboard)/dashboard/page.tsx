@@ -12,6 +12,7 @@ import DraggableLink from '@/components/dashboard/DraggableLink'
 import EmojiPicker from '@/components/dashboard/EmojiPicker'
 import QRCodeGenerator from '@/components/dashboard/QRCodeGenerator'
 import LinkScheduler from '@/components/dashboard/LinkScheduler'
+import { DashboardSkeleton } from '@/components/ui/Skeleton'
 
 interface Link {
   id: string
@@ -350,11 +351,7 @@ export default function DashboardPage() {
   }
 
   if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   return (

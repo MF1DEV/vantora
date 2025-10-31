@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { BarChart3, Eye, MousePointerClick, TrendingUp } from 'lucide-react'
 import { format, subDays } from 'date-fns'
+import { AnalyticsSkeleton } from '@/components/ui/Skeleton'
 
 interface AnalyticsData {
   totalViews: number
@@ -155,11 +156,7 @@ export default function AnalyticsPage() {
   const maxClicks = Math.max(...analytics.linkStats.map(l => l.clicks), 1)
 
   if (loading) {
-    return (
-      <div className="max-w-6xl mx-auto">
-        <div className="text-white">Loading analytics...</div>
-      </div>
-    )
+    return <AnalyticsSkeleton />
   }
 
   const maxViews = Math.max(...analytics.dailyViews.map(d => d.count), 1)

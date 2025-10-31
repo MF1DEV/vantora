@@ -74,13 +74,13 @@ export default function AudioPlayer({ musicUrl, volume = 0.5, autoPlay = true }:
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <div className="flex items-center gap-2 bg-slate-900/95 backdrop-blur-sm border border-slate-700 rounded-full px-4 py-2 shadow-lg">
+      <div className="flex items-center gap-2 bg-slate-900/95 backdrop-blur-sm border border-slate-700 rounded-full px-3 py-2 md:px-4 shadow-lg">
         <audio ref={audioRef} src={musicUrl} />
         
         {/* Play/Pause Button */}
         <button
           onClick={togglePlay}
-          className="p-2 hover:bg-slate-800 rounded-full transition"
+          className="p-2 hover:bg-slate-800 rounded-full transition touch-manipulation"
           aria-label={isPlaying ? 'Pause music' : 'Play music'}
         >
           {isPlaying ? (
@@ -94,7 +94,7 @@ export default function AudioPlayer({ musicUrl, volume = 0.5, autoPlay = true }:
         <div className="flex items-center gap-2">
           <button
             onClick={toggleMute}
-            className="p-2 hover:bg-slate-800 rounded-full transition"
+            className="p-2 hover:bg-slate-800 rounded-full transition touch-manipulation"
             aria-label={isMuted ? 'Unmute' : 'Mute'}
           >
             {isMuted || currentVolume === 0 ? (
@@ -111,11 +111,11 @@ export default function AudioPlayer({ musicUrl, volume = 0.5, autoPlay = true }:
             step="0.1"
             value={currentVolume}
             onChange={handleVolumeChange}
-            className="w-20 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+            className="w-16 md:w-20 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white touch-manipulation"
           />
         </div>
 
-        <span className="text-xs text-slate-400 ml-2">
+        <span className="text-xs text-slate-400 ml-2 hidden sm:inline">
           Background Music
         </span>
       </div>
