@@ -54,8 +54,15 @@ export default function ThemesPage() {
   }
 
   const handleThemeChange = async (theme: any) => {
+    if (!profile?.id) {
+      showToast('error', 'Profile Not Loaded', 'Please wait for profile to load')
+      return
+    }
+
+    console.log('Updating theme with:', { theme, profileId: profile.id })
+
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update({
           theme_background: theme.background,
@@ -63,13 +70,16 @@ export default function ThemesPage() {
           theme_accent_color: theme.accentColor,
         })
         .eq('id', profile.id)
+        .select()
+
+      console.log('Theme update result:', { data, error })
 
       if (error) {
         console.error('Theme update error:', error)
         showToast('error', 'Failed to Update Theme', error.message)
       } else {
         showToast('success', 'Theme Updated', 'Your theme has been applied')
-        loadProfile()
+        await loadProfile()
       }
     } catch (err: any) {
       console.error('Unexpected theme update error:', err)
@@ -78,6 +88,11 @@ export default function ThemesPage() {
   }
 
   const handleLayoutChange = async (layout: string) => {
+    if (!profile?.id) {
+      showToast('error', 'Profile Not Loaded', 'Please wait for profile to load')
+      return
+    }
+
     try {
       const { error } = await supabase
         .from('profiles')
@@ -98,6 +113,11 @@ export default function ThemesPage() {
   }
 
   const handleCSSave = async (css: string) => {
+    if (!profile?.id) {
+      showToast('error', 'Profile Not Loaded', 'Please wait for profile to load')
+      return
+    }
+
     try {
       const { error } = await supabase
         .from('profiles')
@@ -118,6 +138,11 @@ export default function ThemesPage() {
   }
 
   const handleApplyTemplate = async (template: any) => {
+    if (!profile?.id) {
+      showToast('error', 'Profile Not Loaded', 'Please wait for profile to load')
+      return
+    }
+
     try {
       const { error } = await supabase
         .from('profiles')

@@ -66,6 +66,7 @@ Your Vantora app requires the following migrations to be run in your Supabase da
 These should already be in your database:
 
 - ✅ `001_initial_schema.sql` - Core tables (profiles, links, analytics)
+- ⚠️ `001b_add_basic_theme_columns.sql` - **REQUIRED** - Basic theme columns (theme_background, theme_button_style, theme_accent_color, social_links, music settings, total_views)
 - ✅ `002_analytics_tables.sql` - Analytics tracking
 - ✅ `003_file_storage.sql` - Avatar and file uploads
 - ✅ `004_add_link_scheduling.sql` - Scheduled link visibility
@@ -73,6 +74,31 @@ These should already be in your database:
 - ✅ `006_music_storage.sql` - Music file storage bucket
 - ✅ `007_advanced_analytics.sql` - Enhanced analytics
 - ✅ `008_custom_domains_and_protected_links.sql` - Custom domains & password protection
+
+---
+
+## Migration 001b: Basic Theme Columns (⚠️ CRITICAL - REQUIRED FOR THEMES)
+
+**Status:** ⚠️ Must be applied **BEFORE** migration 009
+
+**What it adds:**
+- `theme_background` - Background theme preset name
+- `theme_button_style` - Button style preset  
+- `theme_accent_color` - Accent color name
+- `total_views` - Profile view counter
+- `social_links` - Social media links
+- `music_enabled`, `background_music_url`, `music_volume` - Music settings
+
+**File:** `supabase/migrations/001b_add_basic_theme_columns.sql`
+
+**How to apply:**
+1. Open Supabase SQL Editor
+2. Run the contents of `001b_add_basic_theme_columns.sql`
+3. **Then** run migration 009
+4. Themes will start working
+
+**Why this is needed:**
+The original schema only had a `theme` JSONB column. The app now uses separate columns for better performance and easier queries.
 
 ---
 
