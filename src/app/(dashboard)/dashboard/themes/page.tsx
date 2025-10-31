@@ -76,8 +76,6 @@ export default function ThemesPage() {
       showToast('error', 'Update Failed', err.message || 'Could not update theme')
     }
   }
-    }
-  }
 
   const handleLayoutChange = async (layout: string) => {
     try {
