@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import ProfileLinks from '@/components/profile/ProfileLinks'
+import CustomThemeProvider from '@/components/profile/CustomThemeProvider'
 import SocialMediaLinks from '@/components/dashboard/SocialMediaLinks'
 import AudioPlayer from '@/components/profile/AudioPlayer'
 import AnalyticsTracker from '@/components/analytics/AnalyticsTracker'
@@ -100,10 +101,31 @@ export default async function PublicProfilePage({
   const background = profile.theme_background || 'gradient-blue'
   const buttonStyle = profile.theme_button_style || 'rounded'
   const accentColor = profile.theme_accent_color || 'blue'
-  const bgClass = getBackgroundClass(background)
+  
+  // Use custom background if available, otherwise fallback to theme
+  const customBackground = profile.background_type || profile.theme_background
+  const bgClass = customBackground && !profile.background_gradient && !profile.background_image_url 
+    ? getBackgroundClass(background)
+    : ''
+
+  // Build custom background style
+  let customBgStyle: React.CSSProperties = {}
+  if (profile.background_type === 'gradient' && profile.background_gradient) {
+    customBgStyle.background = profile.background_gradient
+  } else if (profile.background_type === 'solid' && profile.background_color) {
+    customBgStyle.backgroundColor = profile.background_color
+  } else if (profile.background_image_url) {
+    customBgStyle.backgroundImage = `url(${profile.background_image_url})`
+    customBgStyle.backgroundSize = 'cover'
+    customBgStyle.backgroundPosition = 'center'
+  }
 
   return (
-    <div className={`min-h-screen text-white relative overflow-hidden ${bgClass}`}>
+    <CustomThemeProvider profile={profile}>
+      <div 
+        className={`min-h-screen text-white relative overflow-hidden ${bgClass}`}
+        style={customBgStyle}
+      >
       {/* Client-side analytics tracking */}
       <AnalyticsTracker userId={profile.id} eventType="view" />
       
@@ -193,6 +215,7 @@ export default async function PublicProfilePage({
           autoPlay={true}
         />
       )}
-    </div>
+      </div>
+    </CustomThemeProvider>
   )
 }
