@@ -6,6 +6,9 @@ import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Trash2, Edit2, X, Check } from 'lucide-react'
 import EmojiPicker from './EmojiPicker'
 import LinkScheduler from './LinkScheduler'
+import LinkThumbnailUploader from './LinkThumbnailUploader'
+import LinkBadgeSelector from './LinkBadgeSelector'
+import LinkCategorySelector from './LinkCategorySelector'
 
 interface DraggableLinkProps {
   link: {
@@ -18,6 +21,10 @@ interface DraggableLinkProps {
     scheduled_start?: string | null
     scheduled_end?: string | null
     click_count?: number
+    thumbnail_url?: string | null
+    badge?: string | null
+    badge_color?: string | null
+    category?: string | null
   }
   onToggle: () => void
   onDelete: () => void
@@ -28,6 +35,10 @@ interface DraggableLinkProps {
     is_scheduled: boolean
     scheduled_start?: string | null
     scheduled_end?: string | null
+    thumbnail_url?: string | null
+    badge?: string | null
+    badge_color?: string | null
+    category?: string | null
   }) => void
 }
 
@@ -40,6 +51,10 @@ export default function DraggableLink({ link, onToggle, onDelete, onEdit }: Drag
     is_scheduled: link.is_scheduled || false,
     scheduled_start: link.scheduled_start || '',
     scheduled_end: link.scheduled_end || '',
+    thumbnail_url: link.thumbnail_url || '',
+    badge: link.badge || '',
+    badge_color: link.badge_color || '#ef4444',
+    category: link.category || '',
   })
 
   const {
@@ -61,6 +76,10 @@ export default function DraggableLink({ link, onToggle, onDelete, onEdit }: Drag
       is_scheduled: editData.is_scheduled,
       scheduled_start: editData.is_scheduled && editData.scheduled_start ? editData.scheduled_start : null,
       scheduled_end: editData.is_scheduled && editData.scheduled_end ? editData.scheduled_end : null,
+      thumbnail_url: editData.thumbnail_url || null,
+      badge: editData.badge || null,
+      badge_color: editData.badge_color || null,
+      category: editData.category || null,
     })
     setIsEditing(false)
   }
@@ -73,6 +92,10 @@ export default function DraggableLink({ link, onToggle, onDelete, onEdit }: Drag
       is_scheduled: link.is_scheduled || false,
       scheduled_start: link.scheduled_start || '',
       scheduled_end: link.scheduled_end || '',
+      thumbnail_url: link.thumbnail_url || '',
+      badge: link.badge || '',
+      badge_color: link.badge_color || '#ef4444',
+      category: link.category || '',
     })
     setIsEditing(false)
   }
@@ -89,7 +112,8 @@ export default function DraggableLink({ link, onToggle, onDelete, onEdit }: Drag
         ref={setNodeRef}
         className="p-4 bg-slate-900/50 rounded-lg border border-blue-500"
       >
-        <div className="space-y-3">
+        <div className="space-y-4">
+          {/* Basic Info */}
           <div className="flex gap-2">
             <EmojiPicker 
               onSelect={(emoji) => setEditData({ ...editData, icon: emoji })}
@@ -111,6 +135,35 @@ export default function DraggableLink({ link, onToggle, onDelete, onEdit }: Drag
             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500 transition"
             placeholder="https://example.com"
           />
+
+          {/* Customization Section */}
+          <div className="space-y-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+            <h4 className="text-sm font-medium text-slate-300">Customization</h4>
+            
+            {/* Thumbnail */}
+            <LinkThumbnailUploader
+              linkId={link.id}
+              currentThumbnail={editData.thumbnail_url || undefined}
+              onUploadComplete={(url) => setEditData({ ...editData, thumbnail_url: url })}
+            />
+
+            {/* Badge */}
+            <LinkBadgeSelector
+              badge={editData.badge}
+              badgeColor={editData.badge_color}
+              onBadgeChange={(badge, color) => 
+                setEditData({ ...editData, badge, badge_color: color })
+              }
+            />
+
+            {/* Category */}
+            <LinkCategorySelector
+              category={editData.category}
+              onCategoryChange={(category) => setEditData({ ...editData, category })}
+            />
+          </div>
+
+          {/* Scheduling */}
           <LinkScheduler
             isScheduled={editData.is_scheduled}
             scheduledStart={editData.scheduled_start}
@@ -124,6 +177,8 @@ export default function DraggableLink({ link, onToggle, onDelete, onEdit }: Drag
               })
             }
           />
+
+          {/* Action Buttons */}
           <div className="flex gap-2">
             <button
               onClick={handleSave}
@@ -159,10 +214,25 @@ export default function DraggableLink({ link, onToggle, onDelete, onEdit }: Drag
         >
           <GripVertical className="w-5 h-5 text-slate-500 flex-shrink-0" />
         </div>
+        {link.thumbnail_url && (
+          <img 
+            src={link.thumbnail_url} 
+            alt={link.title}
+            className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+          />
+        )}
         <div className="flex-1 min-w-0">
           <div className={`font-medium truncate flex items-center gap-2 ${link.is_active ? 'text-white' : 'text-slate-500'}`}>
             {link.icon && <span className="text-lg flex-shrink-0">{link.icon}</span>}
             <span>{link.title}</span>
+            {link.badge && (
+              <span 
+                className="text-xs px-2 py-0.5 rounded font-bold text-white"
+                style={{ backgroundColor: link.badge_color || '#ef4444' }}
+              >
+                {link.badge}
+              </span>
+            )}
             {!link.is_active && (
               <span className="ml-2 text-xs px-2 py-0.5 bg-slate-700 rounded text-slate-400">Hidden</span>
             )}
@@ -172,7 +242,14 @@ export default function DraggableLink({ link, onToggle, onDelete, onEdit }: Drag
               </span>
             )}
           </div>
-          <div className="text-sm text-slate-400 truncate">{link.url}</div>
+          <div className="text-sm text-slate-400 truncate flex items-center gap-2">
+            {link.category && (
+              <span className="text-xs px-2 py-0.5 bg-purple-600/20 rounded text-purple-400">
+                {link.category}
+              </span>
+            )}
+            {link.url}
+          </div>
         </div>
       </div>
       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">

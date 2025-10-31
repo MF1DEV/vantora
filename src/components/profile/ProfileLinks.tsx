@@ -40,7 +40,35 @@ export default function ProfileLinks({ username }: { username: string }) {
           console.error('Error fetching links:', error)
           setLinks([])
         } else {
-          setLinks(data || [])
+          // Filter visible links based on scheduling
+          const visibleLinks = data?.filter(link => {
+            // If no scheduling, show the link
+            if (!link.scheduled_start && !link.scheduled_end && !link.recurring_schedule) {
+              return true
+            }
+
+            // Check if link is currently scheduled to be visible
+            const now = new Date()
+            const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' })
+            const currentTime = now.toTimeString().slice(0, 5) // HH:MM
+
+            // Check date range
+            if (link.scheduled_start && new Date(link.scheduled_start) > now) return false
+            if (link.scheduled_end && new Date(link.scheduled_end) < now) return false
+
+            // Check time range
+            if (link.time_start && currentTime < link.time_start) return false
+            if (link.time_end && currentTime > link.time_end) return false
+
+            // Check recurring schedule
+            if (link.recurring_schedule && Array.isArray(link.recurring_schedule)) {
+              if (!link.recurring_schedule.includes(currentDay)) return false
+            }
+
+            return true
+          }) || []
+
+          setLinks(visibleLinks)
         }
       } catch (error) {
         console.error('Error in ProfileLinks:', error)
@@ -148,6 +176,9 @@ export default function ProfileLinks({ username }: { username: string }) {
               icon={link.icon}
               onClick={() => handleLinkClick(link)}
               isProtected={link.is_protected}
+              thumbnail={link.thumbnail_url}
+              badge={link.badge}
+              badgeColor={link.badge_color}
             />
           </div>
         ))}

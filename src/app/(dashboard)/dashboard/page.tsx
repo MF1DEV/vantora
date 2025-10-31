@@ -15,6 +15,9 @@ import QRCodeGenerator from '@/components/dashboard/QRCodeGenerator'
 import LinkScheduler from '@/components/dashboard/LinkScheduler'
 import EnhancedScheduler from '@/components/dashboard/EnhancedScheduler'
 import PasswordProtection from '@/components/dashboard/PasswordProtection'
+import LinkThumbnailUploader from '@/components/dashboard/LinkThumbnailUploader'
+import LinkBadgeSelector from '@/components/dashboard/LinkBadgeSelector'
+import LinkCategorySelector from '@/components/dashboard/LinkCategorySelector'
 import { DashboardSkeleton } from '@/components/ui/Skeleton'
 
 interface Link {
@@ -44,7 +47,11 @@ export default function DashboardPage() {
     timeEnd: '',
     recurringDays: [] as number[],
     isProtected: false,
-    password: ''
+    password: '',
+    thumbnail: '',
+    badge: '',
+    badgeColor: '#ef4444',
+    category: ''
   })
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   const [successMessage, setSuccessMessage] = useState('')
@@ -230,6 +237,10 @@ export default function DashboardPage() {
         recurring_schedule: recurringSchedule,
         is_protected: newLink.isProtected,
         password_hash: passwordHash,
+        thumbnail_url: newLink.thumbnail || null,
+        badge: newLink.badge || null,
+        badge_color: newLink.badgeColor || null,
+        category: newLink.category || null,
       })
 
     setAddingLink(false)
@@ -248,7 +259,11 @@ export default function DashboardPage() {
         timeEnd: '',
         recurringDays: [],
         isProtected: false,
-        password: ''
+        password: '',
+        thumbnail: '',
+        badge: '',
+        badgeColor: '#ef4444',
+        category: ''
       })
       showSuccess('Link added successfully!')
       loadData()
@@ -278,6 +293,10 @@ export default function DashboardPage() {
     is_scheduled: boolean
     scheduled_start?: string | null
     scheduled_end?: string | null
+    thumbnail_url?: string | null
+    badge?: string | null
+    badge_color?: string | null
+    category?: string | null
   }) => {
     const { error } = await supabase
       .from('links')
@@ -288,6 +307,10 @@ export default function DashboardPage() {
         is_scheduled: data.is_scheduled,
         scheduled_start: data.scheduled_start,
         scheduled_end: data.scheduled_end,
+        thumbnail_url: data.thumbnail_url,
+        badge: data.badge,
+        badge_color: data.badge_color,
+        category: data.category,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
@@ -698,6 +721,31 @@ export default function DashboardPage() {
                   <p className="text-xs text-red-400 mt-1">{errors.url}</p>
                 )}
               </div>
+
+              {/* Link Customization Section */}
+              <div className="space-y-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                <h4 className="text-sm font-medium text-slate-300">Customize Link</h4>
+                
+                <LinkThumbnailUploader
+                  linkId="new-link"
+                  currentThumbnail={newLink.thumbnail}
+                  onUploadComplete={(url) => setNewLink({ ...newLink, thumbnail: url })}
+                />
+
+                <LinkBadgeSelector
+                  badge={newLink.badge}
+                  badgeColor={newLink.badgeColor}
+                  onBadgeChange={(badge, color) => 
+                    setNewLink({ ...newLink, badge, badgeColor: color })
+                  }
+                />
+
+                <LinkCategorySelector
+                  category={newLink.category}
+                  onCategoryChange={(category) => setNewLink({ ...newLink, category })}
+                />
+              </div>
+
               <EnhancedScheduler
                 isScheduled={newLink.isScheduled}
                 scheduledStart={newLink.scheduledStart}
