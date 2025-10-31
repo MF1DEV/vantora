@@ -110,7 +110,10 @@ export default function DashboardLayout({
             <nav className="space-y-2">
               {navItems.map((item) => {
                 const Icon = item.icon
-                const isActive = pathname?.startsWith(item.href)
+                // Exact match for dashboard, startsWith for others
+                const isActive = item.href === '/dashboard' 
+                  ? pathname === '/dashboard'
+                  : pathname?.startsWith(item.href)
                 
                 return (
                   <Link
@@ -131,7 +134,7 @@ export default function DashboardLayout({
           </aside>
 
           <main className="flex-1">
-            <div className="max-w-5xl mx-auto p-8">
+            <div className="max-w-7xl mx-auto p-8">
               {children}
             </div>
           </main>

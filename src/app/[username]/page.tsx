@@ -108,16 +108,29 @@ export default async function PublicProfilePage({
     ? getBackgroundClass(background)
     : ''
 
-  // Build custom background style
+  // Build custom background style - handle missing columns gracefully
   let customBgStyle: React.CSSProperties = {}
-  if (profile.background_type === 'gradient' && profile.background_gradient) {
-    customBgStyle.background = profile.background_gradient
-  } else if (profile.background_type === 'solid' && profile.background_color) {
-    customBgStyle.backgroundColor = profile.background_color
-  } else if (profile.background_image_url) {
-    customBgStyle.backgroundImage = `url(${profile.background_image_url})`
-    customBgStyle.backgroundSize = 'cover'
-    customBgStyle.backgroundPosition = 'center'
+  try {
+    if (profile.background_type === 'gradient' && profile.background_gradient) {
+      const gradient = typeof profile.background_gradient === 'string' 
+        ? JSON.parse(profile.background_gradient)
+        : profile.background_gradient
+      
+      if (gradient.type === 'linear') {
+        customBgStyle.background = `linear-gradient(${gradient.angle}deg, ${gradient.colors.join(', ')})`
+      } else {
+        customBgStyle.background = `radial-gradient(circle, ${gradient.colors.join(', ')})`
+      }
+    } else if (profile.background_type === 'solid' && profile.background_color) {
+      customBgStyle.backgroundColor = profile.background_color
+    } else if (profile.background_image_url) {
+      customBgStyle.backgroundImage = `url(${profile.background_image_url})`
+      customBgStyle.backgroundSize = 'cover'
+      customBgStyle.backgroundPosition = 'center'
+    }
+  } catch (error) {
+    console.warn('Error parsing custom background, using default:', error)
+    // Fall back to default gradient
   }
 
   return (

@@ -208,18 +208,27 @@ export default function ThemesPage() {
               <h2 className="text-2xl font-semibold text-white mb-6">Advanced Customization</h2>
               <p className="text-slate-400 mb-8">Fine-tune every aspect of your profile's appearance</p>
               
+              {!profile?.custom_colors && (
+                <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/50 rounded-lg">
+                  <p className="text-amber-400 text-sm">
+                    <strong>Note:</strong> Advanced customization features require running migration 009. 
+                    Please run <code className="px-2 py-1 bg-slate-900 rounded">supabase/migrations/009_advanced_customization.sql</code> in your Supabase SQL Editor.
+                  </p>
+                </div>
+              )}
+              
               <AdvancedThemeCustomizer
                 userId={profile?.id}
                 initialData={{
-                  custom_colors: profile?.custom_colors,
-                  font_heading: profile?.font_heading,
-                  font_body: profile?.font_body,
-                  background_type: profile?.background_type,
-                  background_gradient: profile?.background_gradient,
-                  background_color: profile?.background_color,
-                  background_image_url: profile?.background_image_url,
-                  enable_particles: profile?.enable_particles,
-                  button_style: profile?.button_style,
+                  custom_colors: profile?.custom_colors || undefined,
+                  font_heading: profile?.font_heading || undefined,
+                  font_body: profile?.font_body || undefined,
+                  background_type: profile?.background_type || undefined,
+                  background_gradient: profile?.background_gradient || undefined,
+                  background_color: profile?.background_color || undefined,
+                  background_image_url: profile?.background_image_url || undefined,
+                  enable_particles: profile?.enable_particles || undefined,
+                  button_style: profile?.button_style || undefined,
                 }}
                 onSave={() => {
                   showToast('success', 'Advanced settings saved!')
