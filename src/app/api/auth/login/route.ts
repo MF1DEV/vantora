@@ -45,7 +45,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse and validate request body
-    const body = await request.json()
+    let body;
+    try {
+      body = await request.json()
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      )
+    }
     
     // Verify hCaptcha if token is provided
     if (body.hcaptchaToken) {

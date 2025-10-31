@@ -47,7 +47,17 @@ function extractReferrerDomain(referrer: string): string {
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
-    const body = await request.json()
+    
+    let body;
+    try {
+      body = await request.json()
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      )
+    }
+    
     const { user_id, link_id, event_type } = body
 
     // Get request metadata

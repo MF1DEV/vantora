@@ -67,7 +67,16 @@ export async function PUT(request: NextRequest) {
     }
 
     // Parse and validate request body
-    const body = await request.json()
+    let body;
+    try {
+      body = await request.json()
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      )
+    }
+    
     const validation = await validateRequest(profileUpdateSchema, body)
 
     if (!validation.success) {

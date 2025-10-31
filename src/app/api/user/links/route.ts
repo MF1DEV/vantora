@@ -66,7 +66,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
+    let body;
+    try {
+      body = await request.json()
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      )
+    }
     
     // If it's a single link, validate it
     if (body.title && body.url) {
