@@ -312,9 +312,9 @@ export function preloadImages(urls: string[]): Promise<void[]> {
   return Promise.all(
     urls.map(url => {
       return new Promise<void>((resolve, reject) => {
-        const img = new Image()
+        const img = document.createElement('img')
         img.onload = () => resolve()
-        img.onerror = reject
+        img.onerror = () => reject(new Error(`Failed to load image: ${url}`))
         img.src = url
       })
     })
