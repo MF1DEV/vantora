@@ -60,10 +60,14 @@ export default function LoginPage() {
 
       let data;
       try {
-        data = await response.json()
+        const responseText = await response.text()
+        console.log('Raw response:', responseText)
+        data = JSON.parse(responseText)
       } catch (jsonError) {
         console.error('Failed to parse response:', jsonError)
-        throw new Error('Invalid response from server')
+        console.error('Response status:', response.status)
+        console.error('Response statusText:', response.statusText)
+        throw new Error('Server returned invalid response. Check console for details.')
       }
 
       if (!response.ok) {
