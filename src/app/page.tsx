@@ -103,12 +103,16 @@ export default function LandingPage() {
       <nav className="relative z-50 backdrop-blur-sm border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            <div className="flex items-center space-x-3 group cursor-pointer">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-lg shadow-blue-500/50 group-hover:shadow-blue-500/80 transition-all duration-300" />
+            <a href="/" className="flex items-center space-x-3 group cursor-pointer">
+              <img 
+                src="/icons/logo.svg" 
+                alt="Vantora Logo" 
+                className="w-10 h-10 group-hover:scale-110 transition-transform duration-300"
+              />
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                vantora.id
+                vantora
               </span>
-            </div>
+            </a>
             <div className="flex items-center space-x-4">
               <a
                 href="/login"

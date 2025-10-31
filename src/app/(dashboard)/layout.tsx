@@ -79,8 +79,12 @@ export default function DashboardLayout({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16 sm:h-20">
               <Link href="/" className="flex items-center space-x-2 sm:space-x-3">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />
-                <span className="text-white text-lg sm:text-xl font-bold">vantora.id</span>
+                <img 
+                  src="/icons/logo.svg" 
+                  alt="Vantora Logo" 
+                  className="w-7 h-7 sm:w-8 sm:h-8"
+                />
+                <span className="text-white text-lg sm:text-xl font-bold">vantora</span>
               </Link>
 
               <div className="flex items-center gap-3 sm:gap-6">

@@ -37,6 +37,7 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-hook-form": "^7.50.0",
+    "resend": "^6.3.0",
     "sanitize-html": "^2.17.0",
     "validator": "^13.15.20",
     "xss": "^1.0.15",
